@@ -1,0 +1,54 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="container mt-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <!-- Header -->
+            <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+                <i class="bi bi-shield-lock me-2 fs-4"></i>
+                <h1>Edit Role</h1>
+            </div>
+
+            <div class="card-body">
+                <!-- Success/Error Message -->
+                <div id="roleEditSuccess" class="alert alert-success d-none"></div>
+                <div id="roleEditError" class="alert alert-danger d-none"></div>
+
+                <form id="editRoleForm" class="needs-validation" novalidate>
+                    <input type="hidden" id="roleId" th:value="${role.id}">
+                    <!-- Role Name -->
+                    <div class="mb-4">
+                        <label for="name" class="form-label fw-semibold">
+                            <i class="bi bi-tag me-2"></i>Role Name
+                        </label>
+                        <input type="text" class="form-control border-0 shadow-sm rounded-3" id="name"
+                               th:value="${role.name}" placeholder="Enter role name" required>
+                        <div class="invalid-feedback">Please enter a role name.</div>
+                    </div>
+
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary px-4 me-3 shadow-lg rounded-3">
+                            <i class="bi bi-save me-2"></i>Save
+                        </button>
+                        <a th:href="@{/roles}" class="btn btn-outline-secondary px-4 shadow-lg rounded-3">
+                            <i class="bi bi-arrow-left me-2"></i>Back to List
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Optional: Add a quick help card -->
+            <div class="card mt-4 border-0 shadow-sm bg-light rounded-3">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-lightbulb-fill text-warning fs-4 me-3"></i>
+                        <p class="mb-0 text-muted">
+                            Roles define access levels within the system. Make sure to use descriptive names for roles.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/js/roles/edit.js}"></script>
+</div>

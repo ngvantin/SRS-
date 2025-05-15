@@ -1,0 +1,462 @@
+<div class="px-5" th:fragment="content">
+    <div class="container py-2">
+        <!-- Header -->
+        <div class="col-12 text-center mb-4">
+            <h1 class="fw-bold">Assessments</h1>
+        </div>
+
+        <!-- Search and Actions Bar -->
+        <div class="card-body mb-3">
+            <div class="row align-items-center gy-3">
+                <!-- Search and Filter Form -->
+                <div class="col-md-6 d-flex align-items-center gap-2">
+                    <!-- Form lọc theo khóa học -->
+                    <form th:action="@{/assessments}" method="get" class="d-flex">
+                        <select class="form-control w-auto me-2" name="typeId" onchange="this.form.submit()">
+                            <option value="">All Assessment Type</option>
+                            <option th:each="type : ${assessmentTypes}"
+                                    th:value="${type.id}"
+                                    th:text="${type.name}"
+                                    th:selected="${selectedType != null && selectedType == type.id}">
+                            </option>
+                        </select>
+                        <input type="hidden" name="searchTerm" th:value="${searchTerm}">
+                    </form>
+
+                    <!-- Search Form -->
+                    <form th:action="@{/assessments}" method="get" class="input-group">
+                        <input type="hidden" name="typeId" th:value="${selectedType}">
+                        <input type="text" class="form-control" name="searchTerm" placeholder="Search by title" th:value="${searchTerm}"
+                               aria-label="Assessment search" maxlength="50">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="Search" title="Search">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-md-6 d-flex justify-content-end gap-2 flex-wrap">
+                    <!-- Toggle View Button -->
+                    <button type="button" id="toggleViewBtn" class="btn btn-sm btn-outline-secondary" title="Toggle View">
+                        <i id="toggleViewIcon" class="fas fa-table"></i>
+                    </button>
+
+                    <!-- Import Button -->
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importModal" title="Import">
+                        <i class="bi bi-upload"></i>
+                    </button>
+
+                    <!-- Export Button -->
+                    <a th:href="@{/assessments/export}" class="btn btn-sm btn-outline-secondary" title="Export">
+                        <i class="bi bi-file-earmark-excel"></i>
+                    </a>
+
+                    <!-- Print Button -->
+                    <a th:href="@{/assessments/print}" class="btn btn-sm btn-outline-secondary" target="_blank" title="Print">
+                        <i class="bi bi-printer"></i>
+                    </a>
+
+                    <!-- Create Button -->
+                    <a href="/assessments/new" class="btn btn-sm btn-primary" title="Create New Assessment">
+                        <i class="bi bi-plus-circle"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Modal -->
+        <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importModalLabel">Import Assessments from Excel</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Download the Excel template before uploading your file:</p>
+                        <a th:href="@{/assessments/download-template}" class="text-primary text-decoration-underline">
+                            Download Assessment Template
+                        </a>
+                        <form th:action="@{/assessments/import}" method="post" enctype="multipart/form-data" class="mt-3">
+                            <div class="mb-3">
+                                <label for="fileInput" class="form-label">Choose Excel File</label>
+                                <input type="file" name="file" id="fileInput" class="form-control" accept=".xlsx,.xls" required>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-upload"></i> Import
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main th:switch="${#lists.isEmpty(assessments)}">
+            <!-- When Assessments Exist -->
+            <div th:case="false" class="card border-0 shadow-sm">
+                <!-- Card View -->
+                <div id="cardView" style="display: block; max-height: 55vh; overflow-y: auto;">
+                    <div class="row">
+                        <div class="col-sm-6 col-lg-3 mb-3" th:each="assessment : ${assessments}">
+                            <div class="card w-100 shadow-sm h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <!-- Bên trái: Tiêu đề + badge -->
+                                        <div class="d-flex align-items-center gap-2">
+                                            <h3 class="fw-bold text-dark mb-0" th:text="${assessment.title}">Title</h3>
+                                            <span class="badge bg-light text-secondary rounded-pill px-3 py-1"
+                                                  th:text="${assessment.assessmentType.name}"></span>
+                                        </div>
+
+                                        <!-- Bên phải: nút View -->
+                                        <a th:href="@{/assessments/{id}(id=${assessment.id})}"
+                                           class="btn btn-sm btn-outline-primary" title="View" aria-label="View">
+                                            <i class="bi bi-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                    <!-- Khóa học -->
+                                    <p class="text-muted mb-2" th:text="'Course: ' + ${assessment.course.getName()}"></p>
+
+                                    <!-- Số lượng Exercises và Questions -->
+                                    <div class="d-flex justify-content-center gap-5 mb-3">
+                                        <div class="text-center w-100">
+                                            <span class="text-muted d-block">Exercises</span>
+<!--                                            <span class="fw-bold d-block" th:text="${exerciseCounts[assessment.id] != null ? exerciseCounts[assessment.id] : 0}">0</span>-->
+                                        </div>
+                                        <div class="text-center w-100">
+                                            <span class="text-muted d-block">Questions</span>
+<!--                                            <span class="fw-bold d-block" th:text="${questionCounts[assessment.id] != null ? questionCounts[assessment.id] : 0}">0</span>-->
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <!-- Footer của card -->
+                                <div class="card-footer text-muted small d-flex justify-content-between">
+                                    <!-- Nút hành động -->
+                                    <div class="d-flex justify-content-start gap-2">
+                                        <!-- Preview Button -->
+                                        <a th:href="@{/assessments/preview/{id}(id=${assessment.id})}"
+                                           class="btn btn-sm btn-outline-secondary" title="Preview" aria-label="Preview">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <!-- Edit Button -->
+                                        <a th:href="@{/assessments/edit/{id}(id=${assessment.id})}"
+                                           class="btn btn-sm btn-outline-secondary" title="Edit" aria-label="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <!-- Delete Button -->
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteModal"
+                                                title="Delete"
+                                                th:data-id="${assessment.id}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table View -->
+                <div id="tableView" style="display: block; max-height: 55vh; overflow-y: auto;">
+                    <div class="table-responsive text-center">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                            <tr>
+                                <th style="width: 5%"><input type="checkbox" id="selectAll"></th>
+                                <th scope="col" class="fw-semibold text-start" style="width: 15%">#</th>
+                                <th scope="col" class="fw-semibold text-start" style="width: 20%">Title</th>
+                                <th scope="col" class="fw-semibold text-start" style="width: 20%">Assessment Type</th>
+                                <th scope="col" class="fw-semibold " style="width: 20%">Time Limit</th>
+                                <th scope="col" class="fw-semibold text-center" style="width: 20%">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody id="assessmentTableBody">
+                            <tr th:each="assessment, iterStat : ${assessments}">
+                                <td><input type="checkbox" class="selectItem" th:value="${assessment.id}" /></td>
+                                <td th:text="${iterStat.count + (assessments.number * assessments.size)}" class="align-middle text-start"></td>
+                                <td th:text="${assessment.title}" class="align-middle fw-medium text-start"></td>
+                                <td th:text="${assessment.assessmentType.name}" class="text-muted small text-start"></td>
+                                <td th:text="${assessment.timeLimit}" class="text-muted small text-justify"></td>
+                                <td class="text-center align-middle">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <a th:href="@{/assessments/{id}(id=${assessment.id})}"
+                                           class="btn btn-sm btn-outline-secondary" title="View">
+                                            <i class="bi bi-arrow-right"></i>
+                                        </a>
+                                        <a th:href="@{/assessments/preview/{id}(id=${assessment.id})}"
+                                           class="btn btn-sm btn-outline-secondary" title="Preview">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a th:href="@{/assessments/edit/{id}(id=${assessment.id})}"
+                                           class="btn btn-sm btn-outline-secondary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteModal"
+                                                title="Delete"
+                                                th:data-id="${assessment.id}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel">Confirm</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to delete this assessment?
+                                </div>
+                                <div class="modal-footer">
+                                    <form id="deleteForm" th:action="@{/assessments/delete/__ID__}" method="post">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal cho Delete Selected -->
+                    <div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteAllModalLabel">Confirm Deletion</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to delete <span id="deleteCount">0</span> selected assessment(s)?
+                                </div>
+                                <div class="modal-footer">
+                                    <form id="deleteAllForm" th:action="@{/assessments/delete-all}" method="post">
+                                        <input type="hidden" name="ids" id="deleteAllIds">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between mt-3">
+                <div class="d-flex align-items-center">
+                    <button id="deleteAll" class="btn btn-danger me-3" data-bs-toggle="modal" data-bs-target="#deleteAllModal">
+                        <i class="bi bi-trash"></i>
+                        <span>Delete Selected (<span id="selectedCount">0</span>)</span>
+                    </button>
+                    <span class="text-muted">Total Records: <strong th:text="${assessments.totalElements}">0</strong></span>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-end align-items-center mt-4">
+                    <nav aria-label="Assessment pagination">
+                        <ul class="pagination justify-content-end mb-0" id="pagination">
+                            <li class="page-item" th:classappend="${assessments.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/assessments(page=0, size=${assessments.size}, searchTerm=${searchTerm}, courseId=${selectedCourse})}"
+                                   data-page="0" aria-label="First"><i class="bi bi-chevron-double-left"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${assessments.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/assessments(page=${assessments.number - 1}, size=${assessments.size}, searchTerm=${searchTerm}, courseId=${selectedCourse})}"
+                                   th:data-page="${assessments.number - 1}" aria-label="Previous"><i class="bi bi-chevron-left"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${assessments.number == 0} ? 'active'">
+                                <a class="page-link" th:href="@{/assessments(page=0, size=${assessments.size}, searchTerm=${searchTerm}, courseId=${selectedCourse})}"
+                                   data-page="0">1</a>
+                            </li>
+                            <li class="page-item disabled" th:if="${assessments.number > 2}">
+                                <span class="page-link">...</span>
+                            </li>
+                            <th:block th:each="i : ${#numbers.sequence(assessments.number - 1, assessments.number + 1)}"
+                                      th:if="${i > 0 and i < assessments.totalPages - 1}">
+                                <li class="page-item" th:classappend="${assessments.number == i} ? 'active'">
+                                    <a class="page-link" th:href="@{/assessments(page=${i}, size=${assessments.size}, searchTerm=${searchTerm}, courseId=${selectedCourse})}"
+                                       th:data-page="${i}" th:text="${i + 1}"></a>
+                                </li>
+                            </th:block>
+                            <li class="page-item disabled" th:if="${assessments.number < assessments.totalPages - 3}">
+                                <span class="page-link">...</span>
+                            </li>
+                            <li class="page-item" th:classappend="${assessments.number == assessments.totalPages - 1} ? 'active'"
+                                th:if="${assessments.totalPages > 1}">
+                                <a class="page-link" th:href="@{/assessments(page=${assessments.totalPages - 1}, size=${assessments.size}, searchTerm=${searchTerm}, courseId=${selectedCourse})}"
+                                   th:data-page="${assessments.totalPages - 1}" th:text="${assessments.totalPages}"></a>
+                            </li>
+                            <li class="page-item" th:classappend="${assessments.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/assessments(page=${assessments.number + 1}, size=${assessments.size}, searchTerm=${searchTerm}, courseId=${selectedCourse})}"
+                                   th:data-page="${assessments.number + 1}" aria-label="Next"><i class="bi bi-chevron-right"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${assessments.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/assessments(page=${assessments.totalPages - 1}, size=${assessments.size}, searchTerm=${searchTerm}, courseId=${selectedCourse})}"
+                                   th:data-page="${assessments.totalPages - 1}" aria-label="Last"><i class="bi bi-chevron-double-right"></i></a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:case="true" class="card border-0 shadow-sm p-4 text-center">
+                <div class="py-5">
+                    <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                    <h5>No Assessments Found</h5>
+                    <p class="text-muted">There are no assessments available or matching your search criteria.</p>
+                    <a href="/assessments/new" class="btn btn-outline-primary mt-2">
+                        <i class="fas fa-plus me-1"></i> Create Assessment
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript for Delete Modal and View Toggle -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // View Toggle Logic
+            const toggleViewBtn = document.getElementById('toggleViewBtn');
+            const toggleViewIcon = document.getElementById('toggleViewIcon');
+            const cardView = document.getElementById('cardView');
+            const tableView = document.getElementById('tableView');
+
+            // Get the saved view mode from localStorage, default to 'card' if not set
+            let currentView = localStorage.getItem('viewMode') || 'card';
+            updateView(currentView);
+
+            // Add event listener to toggle view on button click
+            toggleViewBtn.addEventListener('click', () => {
+                currentView = currentView === 'card' ? 'table' : 'card';
+                updateView(currentView);
+                localStorage.setItem('viewMode', currentView); // Save the new view mode
+            });
+
+            // Function to update the view
+            function updateView(view) {
+                if (view === 'card') {
+                    cardView.style.display = 'block';
+                    tableView.style.display = 'none';
+                    toggleViewIcon.className = 'fas fa-table'; // Icon for table view
+                    toggleViewBtn.title = 'Switch to Table View';
+                } else {
+                    cardView.style.display = 'none';
+                    tableView.style.display = 'block';
+                    toggleViewIcon.className = 'fas fa-th-large'; // Icon for card view
+                    toggleViewBtn.title = 'Switch to Card View';
+                }
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const itemCheckboxes = document.querySelectorAll('.selectItem');
+            const deleteAllButton = document.getElementById('deleteAll');
+            const deleteModal = document.getElementById('deleteModal');
+            const deleteAllModal = document.getElementById('deleteAllModal');
+            const selectedCount = document.getElementById('selectedCount');
+            const deleteCount = document.getElementById('deleteCount');
+            const deleteAllForm = document.getElementById('deleteAllForm');
+            const deleteAllIdsInput = document.getElementById('deleteAllIds');
+
+            function updateDeleteButton() {
+                const checkedCount = [...itemCheckboxes].filter(cb => cb.checked).length;
+                selectedCount.textContent = checkedCount;
+                deleteAllButton.disabled = checkedCount === 0; // Vô hiệu hóa nút nếu không có mục nào được chọn
+            }
+
+            // Xử lý checkbox "Select All"
+            selectAllCheckbox.addEventListener('change', () => {
+                itemCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+                updateDeleteButton();
+            });
+
+            // Cập nhật khi checkbox riêng lẻ thay đổi
+            itemCheckboxes.forEach(cb => {
+                cb.addEventListener('change', updateDeleteButton);
+            });
+
+            // Xử lý hiển thị modal "Delete Selected"
+            deleteAllModal.addEventListener('show.bs.modal', (event) => {
+                const selectedIds = [...itemCheckboxes]
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+
+                if (selectedIds.length === 0) {
+                    event.preventDefault(); // Ngăn modal hiển thị nếu không có mục nào được chọn
+                    alert('Please select at least one assessment to delete.');
+                    return;
+                }
+
+                deleteCount.textContent = selectedIds.length;
+                deleteAllIdsInput.value = JSON.stringify(selectedIds);
+            });
+
+            // Xử lý modal xóa từng department
+            deleteModal.addEventListener('show.bs.modal', (event) => {
+                const button = event.relatedTarget;
+                const id = button.getAttribute('data-id');
+                if (id) {
+                    const form = deleteModal.querySelector('#deleteForm');
+                    form.action = `/assessments/delete/${id}`;
+                }
+            });
+
+            // Xử lý submit form "Delete Selected"
+            deleteAllForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const selectedIds = JSON.parse(deleteAllIdsInput.value);
+
+                fetch('/assessments/delete-all', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ ids: selectedIds })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to delete assessments');
+                        }
+                        return response.text();
+                    })
+                    .then(() => {
+                        window.location.reload(); // Tải lại trang sau khi xóa thành công
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while deleting departments: ' + error.message);
+                    });
+            });
+
+            // Xử lý khi modal "Delete All" bị đóng (bao gồm nút Cancel)
+            deleteAllModal.addEventListener('hidden.bs.modal', () => {
+                // Reset dữ liệu nếu cần
+                deleteCount.textContent = '0';
+                deleteAllIdsInput.value = '';
+            });
+
+            // Khởi tạo trạng thái ban đầu
+            updateDeleteButton();
+
+            // Khởi tạo tooltip của Bootstrap
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltipTriggerList.forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        });
+    </script>
+</div>

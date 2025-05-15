@@ -1,0 +1,50 @@
+<div class="px-5" th:fragment="content">
+  <div class="px-5" th:fragment="content">
+    <div class="container mt-4">
+      <h2 class="text-center">Test Cases List</h2>
+
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <div th:if="${#lists.isEmpty(testCases)}" class="text-center">
+        <i class="fas fa-exclamation-circle"></i> <span>No test cases available.</span>
+      </div>
+
+      <div th:unless="${#lists.isEmpty(testCases)}">
+        <table class="table table-bordered">
+          <thead>
+          <tr>
+            <th>#</th>
+            <th>Exercise</th>
+            <th>Input</th>
+            <th>Expected Output</th>
+            <th>Actions</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="testCase, iterStat : ${testCases}">
+            <td th:text="${iterStat.index + 1}"></td>
+            <td th:text="${testCase.exercise.title}"></td>
+            <td th:text="${testCase.input}"></td>
+            <td th:text="${testCase.expectedOutput}"></td>
+            <td>
+              <a th:href="@{/testcases/delete/{id}(id=${testCase.id})}" class="btn btn-danger btn-sm"
+                 onclick="return confirm('Are you sure you want to delete this test case?');">
+                <i class="fas fa-trash"></i> Delete
+              </a>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,115 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="container py-2">
+        <h1>Notifications</h1>
+
+        <div class="mb-1">
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle fa-lg me-2"></i>
+                    <span th:text="${success}"></span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-circle fa-lg me-2"></i>
+                    <span th:text="${error}"></span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+
+        <div class="card-body mb-1">
+            <div class="row align-items-center gy-3">
+                <div class="col-md-6 d-flex gap-2">
+                    <form th:action="@{/notifications}" method="get" class="input-group me-1">
+                        <input type="text" class="form-control" name="searchTerm" th:value="${searchTerm}"
+                               placeholder="Search notifications" aria-label="Notification search">
+                        <input type="hidden" name="typeName" th:value="${typeName}">
+
+                        <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="Search"
+                                title="Search">
+                            <i class="bi bi-search"></i>
+                        </button>
+
+                        <input type="hidden" name="startDate" th:value="${startDate}">
+                        <input type="hidden" name="endDate" th:value="${endDate}">
+                    </form>
+                    <form th:action="@{/notifications}" method="get" class="d-flex align-items-center">
+                        <select class="form-select w-200" name="typeName">
+                            <option value="">All Types</option>
+                            <option th:each="type : ${notificationTypes}"
+                                    th:value="${type.name}"
+                                    th:text="${type.name}"
+                                    th:selected="${type.name == typeName}"></option>
+                        </select>
+
+                        <input type="hidden" name="startDate" th:value="${startDate}">
+                        <input type="hidden" name="endDate" th:value="${endDate}">
+                        <input type="hidden" name="searchTerm" th:value="${searchTerm}">
+                    </form>
+
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                            id="reset-button"
+                            title="Reload" aria-label="Reload notifications">
+
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+
+                <div class="col-md-6 d-flex justify-content-end gap-2 flex-wrap">
+                    <div class="d-flex gap-2 me-2 align-items-end">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-play text-success"></i>
+                            </span>
+                            <input type="date" id="startDate" class="form-control" name="startDate"
+                                   th:value="${startDate}" placeholder="Start Date">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-flag-checkered text-danger"></i>
+                            </span>
+                            <input type="date" id="endDate" class="form-control" name="endDate"
+                                   th:value="${endDate}" placeholder="End Date">
+                        </div>
+                    </div>
+
+                    <a href="/notifications/new" class="btn btn-primary" title="Create New Notification">
+                        <i class="bi bi-plus-circle"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <main>
+            <div class="card border-0 shadow-sm">
+                <div id="notificationTableContainer"/>
+            </div>
+        </main>
+    </div>
+
+    <script th:src="@{/js/notification/list/data-module.js}"></script>
+    <script th:src="@{/js/notification/list/search-module.js}"></script>
+    <script th:src="@{/js/notification/list/filter-module.js}"></script>
+    <script th:src="@{/js/notification/list/pagination-module.js}"></script>
+    <script th:src="@{/js/notification/list/checkbox-module.js}"></script>
+    <script th:src="@{/js/notification/list/main.js}"></script>
+
+    <script src="/js/notification/list/data-module.js"></script>
+    <script src="/js/notification/list/search-module.js"></script>
+    <script src="/js/notification/list/filter-module.js"></script>
+    <script src="/js/notification/list/pagination-module.js"></script>
+    <script src="/js/notification/list/checkbox-module.js"></script>
+    <script src="/js/notification/list/main.js"></script>
+    <style>
+        .sticky-header {
+            position: sticky;
+            top: -1px;
+            background: #f8f9fa;
+            z-index: 10;
+            padding: 0;
+            margin: 0;
+        }
+    </style>
+</div>

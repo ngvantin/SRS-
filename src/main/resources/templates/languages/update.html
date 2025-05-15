@@ -1,0 +1,41 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="container mt-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <!-- Header -->
+            <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+                <i class="bi bi-code-slash me-2 fs-4"></i>
+                <h1 class="mb-0 fw-bold">Edit Programming Language</h1>
+            </div>
+
+            <div class="card-body">
+                <!-- Error Message -->
+                <div th:if="${error}" class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                </div>
+
+                <form th:action="@{/languages/edit/{id}(id=${language.id})}" method="post" th:object="${language}">
+                    <input type="hidden" name="_method" value="put"/>
+                    <!-- Language Name -->
+                    <div class="mb-4">
+                        <label for="name" class="form-label fw-semibold">
+                            <i class="bi bi-tag me-2"></i>Name
+                        </label>
+                        <input type="text" class="form-control border-0 shadow-sm rounded-3" id="name" th:field="*{name}"
+                               placeholder="Enter language name" required>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary px-4 me-3 shadow-lg rounded-3">
+                            <i class="bi bi-save me-2"></i>Save
+                        </button>
+                        <a href="/languages" class="btn btn-outline-secondary px-4 shadow-lg rounded-3">
+                            <i class="bi bi-arrow-left me-2"></i>Back to List
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

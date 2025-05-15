@@ -1,0 +1,160 @@
+.active-conversation {
+    background-color: #e9ecef !important;
+    font-weight: bold;
+    border-left: 4px solid #007bff;
+}
+
+.hover-bg-light:hover {
+    background-color: #f1f3f5;
+    transition: background-color 0.2s;
+}
+
+.transition-all {
+    transition: all 0.1s ease;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #007bff, #00b4db);
+}
+
+.message-bubble {
+    transition: transform 0.1s;
+    word-wrap: break-word;
+    max-width: 60%;
+    min-width: auto;
+    display: inline-block;
+    position: relative;
+}
+
+.message-bubble:hover {
+    transform: scale(1.02);
+}
+
+.message-timestamp {
+    font-size: 0.75rem;
+    display: block;
+}
+
+.animate-message {
+    animation: fadeIn 0.1s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .col-lg-3 {
+        position: absolute;
+        z-index: 10;
+        width: 100%;
+        height: 100%;
+        display: none;
+    }
+    .col-lg-9 {
+        width: 100%;
+    }
+    .animate-logo {
+        width: 100%;
+        max-width: 300px;
+        max-height: 50%;
+    }
+}
+
+@media (min-width: 769px) {
+    .animate-logo {
+        width: 400px;
+    }
+}
+
+.sticker-item {
+    transition: transform 0.2s;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+.sticker-item:hover {
+    transform: scale(1.1);
+    background-color: #f0f0f0;
+}
+
+.btn {
+    margin-bottom: 5px;
+    background-color: transparent;
+    border: none;
+    padding: 5px 8px;
+    transition: background-color 0.2s ease;
+}
+
+.btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.btn i {
+    color: #6c757d;
+    font-size: 1.2rem;
+}
+
+.btn:hover i {
+    color: #495057;
+}
+
+.animate-logo {
+    animation: fadeIn 1s ease-in;
+}
+
+#videoCallContainer {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+video {
+    background: #000;
+    object-fit: cover;
+}
+
+.input-group {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.input-group.focused {
+    padding-left: 40px;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.input-group.focused .form-control {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    width: calc(100% - 40px);
+}
+
+#backBtn {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: all 0.3s ease;
+}
+
+#messageArea {
+    position: relative;
+    overflow: auto !important;
+}

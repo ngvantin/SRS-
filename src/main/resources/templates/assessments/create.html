@@ -1,0 +1,547 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="container mt-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <!-- Header -->
+            <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+                <i class="bi bi-journal-text me-2 fs-4"></i>
+                <h1 class="mb-0 fw-bold">Create New Assessment</h1>
+            </div>
+
+            <div class="card-body">
+                <!-- Error Message -->
+                <div th:if="${error}" class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                </div>
+
+                <form th:action="@{/assessments}" method="post" th:object="${assessment}">
+                    <!-- Assessment Type, Title, Course in Columns -->
+                    <div class="row g-3 mb-4">
+
+                        <!-- Course -->
+                        <div class="col-md-5">
+                            <label for="course" class="form-label fw-semibold">
+                                <i class="bi bi-book me-2"></i>Course
+                            </label>
+                            <select id="course" class="form-select border-0 shadow-sm rounded-3" th:field="*{course}" required>
+                                <option value="" disabled selected>Select One</option>
+                                <option th:each="course : ${courses}" th:value="${course.id}" th:text="${course.name}"></option>
+                            </select>
+                        </div>
+
+                        <!-- Title -->
+                        <div class="col-md-5">
+                            <label for="title" class="form-label fw-semibold">
+                                <i class="bi bi-pencil-square me-2"></i>Title
+                            </label>
+                            <input type="text" class="form-control border-0 shadow-sm rounded-3" id="title" th:field="*{title}" placeholder="Enter title" required>
+                        </div>
+
+                        <!-- Assessment Type -->
+                        <div class="col-md-2">
+                            <label for="assessmentType" class="form-label fw-semibold">
+                                <i class="bi bi-list-check me-2"></i>Assessment Type
+                            </label>
+                            <select id="assessmentType" class="form-select border-0 shadow-sm rounded-3" th:field="*{assessmentType}" required>
+                                <option value="" disabled selected>Select One</option>
+                                <option th:each="type : ${assessmentTypes}" th:value="${type.id}" th:text="${type.name}"></option>
+                            </select>
+                        </div>
+
+
+                    </div>
+
+                    <!-- Exercises/Questions/Settings Tabs -->
+                    <div class="card mt-3 shadow-sm border-0 rounded-3">
+                        <div class="card-header bg-dark text-white d-flex align-items-center ">
+                            <i class="bi bi-gear me-2" ></i>
+                            <h5 class="mb-0">Exercises/Questions/Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="nav nav-tabs" id="assessmentTabs">
+                                <li class="nav-item">
+                                    <a class="nav-link active" data-bs-toggle="tab" href="#exercises">
+                                        <i class="bi bi-list-task me-2"></i>Exercises
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#questions">
+                                        <i class="bi bi-question-circle me-2"></i>Questions
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#settings">
+                                        <i class="bi bi-sliders me-2"></i>Settings
+                                    </a>
+                                </li>
+                            </ul>
+                            <div class="tab-content mt-3">
+                                <div class="tab-pane fade show active" id="exercises">
+                                    <!-- Exercises Content -->
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <select id="language" name="languageId" class="form-select w-auto">
+                                            <option value="">All Languages</option>
+                                            <option th:each="lang : ${languages}" th:value="${lang.id}" th:text="${lang.name}" th:selected="${selectedLanguageId == lang.id}"></option>
+                                        </select>
+                                        <input type="text" class="form-control w-50" id="exerciseSearch" placeholder="Search for exercises">
+                                    </div>
+                                    <ul class="list-group">
+                                        <th:block th:each="exercise : ${exercises}">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" th:data-language-id="${exercise.language.id}">
+                                                <input type="checkbox" class="me-2" th:value="${exercise.id}" name="selectedExercises">
+                                                <span th:text="${exercise.title}"></span>
+                                                <span class="badge rounded-pill bg-light text-dark small ms-auto border border-primary mx-2" th:text="${exercise.language.name}"></span>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm view-description" th:data-description="${exercise.description}">
+                                                    <i class="bi bi-eye-slash"></i>
+                                                </button>
+                                            </li>
+                                        </th:block>
+                                    </ul>
+                                    <div class="mt-3">
+                                        <h5>Preview Selected Exercise</h5>
+                                        <div id="preview" class="border p-3 bg-light">No exercise selected.</div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="questions">
+                                    <!-- Questions Content -->
+                                    <div class="row">
+                                        <div class="mb-3">
+                                            <div class="input-group mb-3">
+                                                <input type="text" class="form-control" id="questionSearch" placeholder="Search questions...">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5>Multiple Choice Library</h5>
+                                            <div class="mb-2" th:each="quiz : ${quizzes}">
+                                                <button class="btn btn-outline-primary btn-sm w-100 text-start" type="button" data-bs-toggle="collapse" th:data-bs-target="'#quizQuestions' + ${quiz.id}">
+                                                    <span th:text="${quiz.name}" class="me-3">Quiz Name</span>
+                                                    <span class="badge bg-success me-3" th:text="${quiz.questions.size()} + ' questions'"></span>
+                                                </button>
+                                                <ul class="list-group collapse mt-2" th:id="'quizQuestions' + ${quiz.id}">
+                                                    <li class="list-group-item" th:each="question : ${quiz.questions}">
+                                                        <!-- Nút Add All -->
+                                                        <button type="button" class="btn btn-primary btn-sm mt-2 add-all-questions d-none" th:data-quiz-id="${quiz.id}">
+                                                            Add All Questions
+                                                        </button>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span th:text="${question.text}">Question Text</span>
+                                                            <button type="button" class="btn btn-outline-success btn-sm add-question" th:data-question="${question.text}" th:data-question-id="${question.id}" th:data-quiz-id="${quiz.id}">
+                                                                <i class="bi bi-plus"></i>
+                                                            </button>
+                                                        </div>
+                                                        <ul class="list-group mt-2 answers-list">
+                                                            <li th:each="answer : ${question.answers}" class="list-group-item d-flex align-items-center">
+                                                                <input class="form-check-input me-2" type="checkbox" th:checked="${answer.isCorrect}" disabled>
+                                                                <span th:text="${answer.text}"></span>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h5>Selected Questions</h5>
+                                            <ul class="list-group" id="selectedQuestionsList">
+                                                <li class="list-group-item text-muted text-center">No questions selected.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="settings">
+                                    <!-- Settings Content -->
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label for="id_minimum_score" class="form-label">Minimum Score:</label>
+                                            <input type="number" class="form-control" placeholder="Enter minimum score" id="id_minimum_score" name="minimumScore" data-has-listeners="true" min="0" th:value="${minimumScore}?: 60">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="id_time_limit" class="form-label">Time Limit (minutes):</label>
+                                            <input type="number" class="form-control" placeholder="Enter time limit" id="id_time_limit" name="timeLimit" data-has-listeners="true" min="0" th:value="${timeLimit} ?: 30">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="id_exercise_ratio" class="form-label">Exercise Score Ratio:</label>
+                                            <input type="number" class="form-control"
+                                                   placeholder="Enter exercise ratio"
+                                                   id="id_exercise_ratio"
+                                                   name="exerciseScoreRatio"
+                                                   data-has-listeners="true"
+                                                   min="0" max="100" step="1"
+                                                   th:value="${exerciseScoreRatio} ?: 60">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="id_quiz_ratio" class="form-label">Quiz Score Ratio:</label>
+                                            <input type="number" class="form-control"
+                                                   placeholder="Enter quiz ratio"
+                                                   id="id_quiz_ratio"
+                                                   name="quizScoreRatio"
+                                                   data-has-listeners="true"
+                                                   min="0" max="100" step="1"
+                                                   th:value="${quizScoreRatio} ?: 40">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end mt-4">
+
+                        <input type="hidden" id="selectedExerciseIds" name="selectedExerciseIds">
+                        <!-- Hidden field for selected question IDs -->
+                        <input type="hidden" id="selectedQuestionIds" name="selectedQuestionIds">
+                        <button type="submit" class="btn btn-primary px-4 me-3 shadow-lg rounded-3">
+                            <i class="bi bi-save me-2"></i>Save
+                        </button>
+                        <a href="/assessments" class="btn btn-outline-secondary px-4 shadow-lg rounded-3">
+                            <i class="bi bi-arrow-left me-2"></i>Back to List
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Lấy tất cả các nút "view-description"
+            const viewDescriptionButtons = document.querySelectorAll(".view-description");
+
+            // Lấy phần tử preview
+            const previewDiv = document.getElementById("preview");
+
+            // Duyệt qua từng nút
+            viewDescriptionButtons.forEach(button => {
+                button.addEventListener("click", function () {
+                    // Lấy checkbox tương ứng với bài tập
+                    const checkbox = this.closest("li").querySelector('input[type="checkbox"]');
+
+                    // Kiểm tra xem checkbox có được chọn hay không
+                    if (!checkbox.checked) {
+                        alert("Vui lòng chọn bài tập trước khi xem mô tả.");
+                        return;
+                    }
+
+                    // Lấy mô tả từ thuộc tính data-description
+                    const description = this.getAttribute("data-description");
+
+                    // Kiểm tra xem mô tả đang hiển thị hay ẩn
+                    const isDescriptionVisible = previewDiv.innerHTML === description;
+
+                    // Thay đổi biểu tượng và hiển thị/ẩn mô tả
+                    if (isDescriptionVisible) {
+                        // Nếu mô tả đang hiển thị, chuyển về mắt bị gạch chéo và ẩn mô tả
+                        this.innerHTML = '<i class="fa fa-eye-slash"></i>';
+                        previewDiv.innerHTML = "No exercise selected.";
+                    } else {
+                        // Nếu mô tả đang ẩn, chuyển về mắt mở và hiển thị mô tả
+                        this.innerHTML = '<i class="fa fa-eye"></i>';
+                        previewDiv.innerHTML = description ? description : "No description available.";
+                    }
+                });
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const selectedQuestionsList = document.getElementById("selectedQuestionsList");
+            const addButtons = document.querySelectorAll(".add-question");
+            const selectedQuestionIdsInput = document.getElementById("selectedQuestionIds");
+
+
+            // Hiển thị/Ẩn nút "Add All" khi mở/đóng quiz
+            document.querySelectorAll(".list-group.collapse").forEach(quizList => {
+                const addAllButton = quizList.querySelector(".add-all-questions");
+
+                quizList.addEventListener("show.bs.collapse", function () {
+                    addAllButton.classList.remove("d-none");
+                });
+
+                quizList.addEventListener("hide.bs.collapse", function () {
+                    addAllButton.classList.add("d-none");
+                });
+            });
+
+            // Xử lý sự kiện khi nhấn nút "Add All"
+            document.querySelectorAll(".add-all-questions").forEach(button => {
+                button.addEventListener("click", function () {
+                    const quizId = this.getAttribute("data-quiz-id");
+                    const quizList = document.getElementById(`quizQuestions${quizId}`);
+                    const questions = quizList.querySelectorAll(".add-question");
+
+                    questions.forEach(questionButton => {
+                        questionButton.click(); // Giả l���p nhấn nút "Add" cho từng câu hỏi
+                    });
+                });
+            });
+
+
+
+            // Handler for adding questions
+            addButtons.forEach(button => {
+                button.addEventListener("click", function () {
+                    // Get the question text from data-question attribute
+                    const questionText = this.getAttribute("data-question")?.trim();
+                    const questionId = this.getAttribute("data-question-id");
+                    const quizId = this.getAttribute("data-quiz-id");
+                    console.log("Button clicked!");
+                    console.log("Quiz ID:", quizId, "Question ID:", questionId);
+
+                    if (!questionText) {
+                        console.warn("Invalid question text.");
+                        return;
+                    }
+                    console.log("Plus button clicked:", questionText);
+
+                    // Remove the placeholder if it exists
+                    if (selectedQuestionsList.children.length === 1) {
+                        const firstElement = selectedQuestionsList.firstElementChild;
+                        if (firstElement && firstElement.classList.contains("text-muted")) {
+                            selectedQuestionsList.innerHTML = "";
+                        }
+                    }
+
+                    // Prevent duplicate questions
+                    const existingQuestions = Array.from(selectedQuestionsList.children)
+                        .map(li => li.querySelector("span")?.textContent.trim());
+                    if (existingQuestions.includes(questionText)) {
+                        console.warn("Question already added:", questionText);
+                        return;
+                    }
+                    console.log(`Fetching question details for Question ID: ${questionId}`);
+
+                    // Fetch question details
+                    fetch(`/quizzes/${quizId}/question/${questionId}`, {
+                        method: "GET",
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(err => { throw new Error(err.message); });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log("Full API Response:", data);
+                            if (data.success) {
+                                // Create the new list item (with up/down and remove buttons)
+                                const li = document.createElement("li");
+                                li.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+
+                                // Create answers HTML
+                                let answersHtml = '<ul class="list-group mt-2">';
+                                if (data.answers && data.answers.length > 0) {
+                                    data.answers.forEach(answer => {
+                                        answersHtml += `
+                            <li class="list-group-item">
+                                <input class="form-check-input me-2" type="checkbox" ${answer.isCorrect ? 'checked' : ''} disabled>
+                                <span>${answer.text}</span>
+                            </li>
+                        `;
+                                    });
+                                }
+                                answersHtml += '</ul>';
+
+                                li.innerHTML = `
+                    <div class="d-flex justify-content-between w-100">
+                        <div>
+                            <span>${data.questionText}</span>
+                            ${answersHtml}
+                        </div>
+                        <div class="actions d-flex flex-column align-items-center" style="margin-left: 10px; gap: 5px;">
+                            <button class="btn btn-outline-secondary btn-sm move-up" type="button" title="Move Up">
+                                <i class="fa fa-arrow-up"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm move-down" type="button" title="Move Down">
+                                <i class="fa fa-arrow-down"></i>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm remove-question" type="button" title="Remove">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                                selectedQuestionsList.appendChild(li);
+                                // Add question ID to hidden input
+                                const questionIds = selectedQuestionIdsInput.value ? selectedQuestionIdsInput.value.split(',') : [];
+                                questionIds.push(questionId);
+                                selectedQuestionIdsInput.value = questionIds.join(',');
+                            } else {
+                                console.warn("Failed to fetch question details:", data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error fetching question:", error);
+                        });
+                });
+            });
+
+            // Event delegation for remove, move up, and move down buttons
+            selectedQuestionsList.addEventListener("click", function (event) {
+                const target = event.target;
+                const li = target.closest("li");
+                if (!li) {
+                    return;
+                }
+
+                // Remove question
+                if (target.closest(".remove-question")) {
+                    li.remove();
+
+
+                    // Remove question ID from hidden input
+                    const questionIds = selectedQuestionIdsInput.value.split(',');
+                    const index = questionIds.indexOf(questionId);
+                    if (index > -1) {
+                        questionIds.splice(index, 1);
+                    }
+                    selectedQuestionIdsInput.value = questionIds.join(',');
+
+                    // If no questions remain, restore the placeholder
+                    if (selectedQuestionsList.children.length === 0) {
+                        selectedQuestionsList.innerHTML = '<li class="list-group-item text-muted text-center">No questions selected.</li>';
+                    }
+                    return;
+                }
+
+                // Move question up
+                if (target.closest(".move-up")) {
+                    const prev = li.previousElementSibling;
+                    if (prev) {
+                        // Insert current li before its previous sibling
+                        selectedQuestionsList.insertBefore(li, prev);
+                    }
+                    return;
+                }
+
+                // Move question down
+                if (target.closest(".move-down")) {
+                    const next = li.nextElementSibling;
+                    if (next) {
+                        // Insert the next sibling before the current li, effectively swapping their order
+                        selectedQuestionsList.insertBefore(next, li);
+                    }
+                    return;
+                }
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Lấy danh sách tất cả các checkbox bài tập
+            const checkboxes = document.querySelectorAll('input[name="selectedExercises"]');
+            const hiddenInput = document.getElementById("selectedExerciseIds"); // Hidden input
+
+            // Hàm cập nhật hidden input
+            const updateHiddenInput = () => {
+                const selectedIds = [...checkboxes]
+                    .filter(checkbox => checkbox.checked) // Chỉ lấy checkbox được chọn
+                    .map(checkbox => checkbox.value);
+
+                hiddenInput.value = selectedIds.join(","); // Gán giá trị vào hidden input
+            };
+
+            // Thêm sự kiện "change" cho mỗi checkbox
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener("change", updateHiddenInput);
+            });
+        });
+
+        // Search Question
+        document.addEventListener("DOMContentLoaded", function () {
+            // Search questions functionality using vanilla JS to expand collapsed sections
+            const questionSearchInput = document.getElementById("questionSearch");
+
+
+            // Hàm tìm kiếm câu hỏi
+            function filterQuestions(event) {
+                if (event) event.preventDefault(); // Ngăn chặn form submit nếu có
+
+                const filter = questionSearchInput.value.trim().toLowerCase(); // Lấy từ khóa tìm kiếm
+
+                // Duyệt qua tất cả các danh sách câu hỏi trong Multiple Choice Library
+                document.querySelectorAll(".list-group.collapse").forEach(list => {
+                    let hasVisibleItems = false; // Biến kiểm tra xem có câu hỏi nào khớp không
+
+                    // Duyệt qua từng câu hỏi trong danh sách
+                    list.querySelectorAll("li.list-group-item").forEach(li => {
+                        const questionText = li.querySelector("span")?.textContent.toLowerCase(); // Lấy nội dung câu hỏi
+                        if (questionText && questionText.includes(filter)) {
+                            li.style.display = ""; // Hiển thị câu hỏi nếu khớp
+                            hasVisibleItems = true;
+                        } else {
+                            li.style.display = "none"; // Ẩn câu hỏi nếu không khớp
+                        }
+                    });
+
+                    // Nếu có câu hỏi khớp, mở rộng danh sách
+                    if (hasVisibleItems) {
+                        list.classList.add("show"); // Thêm class "show" để hiển thị danh sách
+                    } else {
+                        list.classList.remove("show"); // Ẩn danh sách nếu không có câu hỏi khớp
+                    }
+                });
+            }
+
+            // Bắt sự kiện khi người dùng nhập từ khóa
+            if (questionSearchInput) {
+                questionSearchInput.addEventListener("keyup", filterQuestions);
+
+                // Ngăn chặn sự kiện Enter
+                questionSearchInput.addEventListener("keydown", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault(); // Ngăn chặn hành động mặc định của phím Enter
+                        console.log("Enter key pressed, but action prevented.");
+                    }
+                });
+            }
+        });
+
+        // Search exercise
+        document.addEventListener("DOMContentLoaded", function () {
+            const exerciseSearchInput = document.getElementById("exerciseSearch");
+            const languageSelect = document.getElementById("language");
+
+            function filterExercises() {
+                const searchKeyword = exerciseSearchInput.value.trim().toLowerCase();
+                const selectedLanguageId = languageSelect.value; // Lấy giá trị languageId
+
+                document.querySelectorAll(".list-group-item").forEach(item => {
+                    const exerciseText = item.querySelector("span")?.textContent.toLowerCase();
+                    const exerciseLanguageId = item.getAttribute("data-language-id") || "";
+
+                    const matchesSearch = !searchKeyword || (exerciseText && exerciseText.includes(searchKeyword));
+                    const matchesLanguage = !selectedLanguageId || exerciseLanguageId === selectedLanguageId;
+
+                    // Hiển thị bài tập nếu khớp cả 2 điều kiện
+                    if (matchesSearch && matchesLanguage) {
+                        item.classList.remove("d-none");
+                    } else {
+                        item.classList.add("d-none");
+                    }
+                });
+            }
+
+            // Bắt sự kiện khi người dùng nhập từ khóa
+            if (exerciseSearchInput) {
+                exerciseSearchInput.addEventListener("keyup", filterExercises);
+
+                // Ngăn chặn sự kiện Enter
+                exerciseSearchInput.addEventListener("keydown", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault(); // Ngăn chặn hành động mặc định của phím Enter
+                        console.log("Enter key pressed, but action prevented.");
+                    }
+                });
+            }
+
+            // Bắt sự kiện khi người dùng thay đổi lựa chọn ngôn ngữ
+            if (languageSelect) {
+                languageSelect.addEventListener("change", filterExercises);
+            }
+
+            // Lọc bài tập khi trang được tải
+            filterExercises();
+        });
+
+    </script>
+</div>

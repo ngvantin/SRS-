@@ -1,0 +1,176 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <link href="/css/feedbacks/user-feedback-admins.css" rel="stylesheet">
+    <div class="container py-4">
+        <!-- Tab Navigation -->
+        <div th:replace="feedbacks/fragment/navbar-feedback-user :: tab-navigation-user"></div>
+
+        <!-- Header -->
+        <div class="col-12 text-center mb-5">
+            <h1 class="fw-bold display-5">Admin Feedback</h1>
+            <p class="text-muted">Discover what learners say about our administrators.</p>
+        </div>
+
+        <!-- Alerts Section -->
+        <div class="mb-4" th:if="${successMessage}">
+            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle fa-lg me-2"></i>
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+
+        <!-- Search and Actions Bar -->
+        <div class="card shadow-sm mb-5">
+            <div class="card-body">
+                <form method="get" th:action="@{/feedbacks/admin/search}" id="searchForm">
+                    <div class="row align-items-center gy-3">
+                        <!-- Search Form -->
+                        <div class="col-md-6 d-flex">
+                            <div class="input-group me-2 flex-grow-1">
+                                <input list="adminList" name="adminName" id="searchAdmin" class="form-control"
+                                       placeholder="Search by admin name" aria-label="Admin search">
+                                <datalist id="adminList">
+                                    <option value="">All Admins</option>
+                                    <option th:each="admin : ${admins}" th:value="${admin.username}" th:attr="data-id=${admin.id}"></option>
+                                </datalist>
+                                <input type="hidden" name="adminId" id="hiddenAdminId">
+                                <button type="submit" class="btn btn-primary" aria-label="Search" title="Search">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary" onclick="toggleAdvancedFilters()" title="Filter">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="col-md-6 d-flex justify-content-end gap-2 flex-wrap">
+                            <button type="button" class="btn btn-outline-primary" onclick="window.location.href='/feedbacks/admin/user/list'"
+                                    title="Reload" aria-label="Reload feedbacks">
+                                <i class="fas fa-sync-alt"></i> Reload
+                            </button>
+                            <a href="/feedbacks/admin/user" class="btn btn-primary" title="Create New Feedback">
+                                <i class="bi bi-plus-circle me-1"></i> Add Feedback
+                            </a>
+                        </div>
+
+                        <!-- Advanced Filters -->
+                        <div id="advancedFilters" class="collapse mt-3">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="minAverageRating" class="form-label fw-medium">Min Rating</label>
+                                    <input type="number" name="minAverageRating" id="minAverageRating" class="form-control"
+                                           step="0.1" min="0" max="5" th:value="${minAverageRating}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="startDate" class="form-label fw-medium">Start Date</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                                        <input type="date" class="form-control" id="startDate" name="startDate" th:value="${startDate}">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="endDate" class="form-label fw-medium">End Date</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                                        <input type="date" class="form-control" id="endDate" name="endDate" th:value="${endDate}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Feedback Count -->
+        <div class="mb-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-semibold">Total Feedback: <span class="badge bg-primary" th:text="${adminFeedbacks.totalElements}">0</span></h5>
+        </div>
+
+        <!-- Main Content -->
+        <main th:switch="${#lists.isEmpty(adminFeedbacks.content)}">
+            <!-- Feedback Cards -->
+            <div th:case="false" class="row g-4">
+                <div class="col-md-6 col-lg-4" th:each="feedback : ${adminFeedbacks.content}">
+                    <div class="card h-100 shadow-sm hover-shadow">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold" th:text="${feedback.admin.username}"></h5>
+                            <p class="card-subtitle mb-2 text-muted" th:text="${feedback.classes.name}"></p>
+                            <div class="d-flex align-items-center mb-2">
+                                <!-- Star Rating -->
+                                <div class="star-rating me-2" th:data-rating="${feedback.averageRating}">
+                                    <i class="fas fa-star" th:classappend="${feedback.averageRating >= 1} ? 'text-warning' : 'text-muted'"></i>
+                                    <i class="fas fa-star" th:classappend="${feedback.averageRating >= 2} ? 'text-warning' : 'text-muted'"></i>
+                                    <i class="fas fa-star" th:classappend="${feedback.averageRating >= 3} ? 'text-warning' : 'text-muted'"></i>
+                                    <i class="fas fa-star" th:classappend="${feedback.averageRating >= 4} ? 'text-warning' : 'text-muted'"></i>
+                                    <i class="fas fa-star" th:classappend="${feedback.averageRating >= 5} ? 'text-warning' : 'text-muted'"></i>
+                                </div>
+                                <span class="text-muted small" th:text="${feedback.averageRating} + ' / 5'"></span>
+                            </div>
+                            <p class="card-text text-muted small">
+                                Posted on: <span th:text="${#dates.format(feedback.date, 'MMM dd, yyyy')}"></span>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 text-center">
+                            <a th:href="@{/feedbacks/admin/{id}(id=${feedback.id})}" class="btn btn-sm btn-outline-primary w-100" title="View Feedback">
+                                <i class="fas fa-eye me-1"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-center mt-5" th:case="false">
+                <nav aria-label="Feedback pagination">
+                    <ul class="pagination">
+                        <li class="page-item" th:classappend="${adminFeedbacks.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{/feedbacks/admin(page=0, size=${adminFeedbacks.size}, adminName=${adminName}, minAverageRating=${minAverageRating}, startDate=${startDate}, endDate=${endDate})}"
+                               aria-label="First"><i class="bi bi-chevron-double-left"></i></a>
+                        </li>
+                        <li class="page-item" th:classappend="${adminFeedbacks.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{/feedbacks/admin(page=${adminFeedbacks.number - 1}, size=${adminFeedbacks.size}, adminName=${adminName}, minAverageRating=${minAverageRating}, startDate=${startDate}, endDate=${endDate})}"
+                               aria-label="Previous"><i class="bi bi-chevron-left"></i></a>
+                        </li>
+                        <li class="page-item" th:classappend="${adminFeedbacks.number == i} ? 'active'"
+                            th:each="i : ${#numbers.sequence(0, adminFeedbacks.totalPages - 1)}">
+                            <a class="page-link" th:href="@{/feedbacks/admin(page=${i}, size=${adminFeedbacks.size}, adminName=${adminName}, minAverageRating=${minAverageRating}, startDate=${startDate}, endDate=${endDate})}"
+                               th:text="${i + 1}"></a>
+                        </li>
+                        <li class="page-item" th:classappend="${adminFeedbacks.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{/feedbacks/admin(page=${adminFeedbacks.number + 1}, size=${adminFeedbacks.size}, adminName=${adminName}, minAverageRating=${minAverageRating}, startDate=${startDate}, endDate=${endDate})}"
+                               aria-label="Next"><i class="bi bi-chevron-right"></i></a>
+                        </li>
+                        <li class="page-item" th:classappend="${adminFeedbacks.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{/feedbacks/admin(page=${adminFeedbacks.totalPages - 1}, size=${adminFeedbacks.size}, adminName=${adminName}, minAverageRating=${minAverageRating}, startDate=${startDate}, endDate=${endDate})}"
+                               aria-label="Last"><i class="bi bi-chevron-double-right"></i></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- Empty State -->
+            <div th:case="true" class="card border-0 shadow-sm p-5 text-center">
+                <i class="fas fa-comment-slash fa-4x text-muted mb-4"></i>
+                <h4 class="fw-semibold">No Feedback Found</h4>
+                <p class="text-muted mb-4">It looks like there are no feedbacks matching your criteria. Try adjusting your filters or add a new feedback.</p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="/feedbacks/admin" class="btn btn-outline-primary">
+                        <i class="fas fa-sync-alt me-1"></i> Reset Filters
+                    </a>
+                    <a href="/feedbacks/admin/user" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i> Create Feedback
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript Dependencies -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/feedbacks/user-feedback-admins.js}"></script>
+</div>

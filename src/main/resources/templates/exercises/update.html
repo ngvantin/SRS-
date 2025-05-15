@@ -1,0 +1,169 @@
+<div class="px-5" th:fragment="content">
+    <div class="container mt-5">
+        <!-- Header -->
+        <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+            <i class="bi bi-building me-2 fs-4"></i>
+            <h1 class="mb-0 fw-bold">Update Exercise</h1>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger" role="alert">
+            <span th:text="${error}"></span>
+        </div>
+
+        <form th:action="@{/exercises/edit/{id}(id=${exercise.id})}" method="post" th:object="${exercise}">
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" class="form-control" id="title" th:field="*{title}" maxlength="100" required>
+            </div>
+
+            <!-- Mô tả với CKEditor -->
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" th:field="*{description}" rows="3" maxlength="1000" required></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="language" class="form-label">Programming Language</label>
+                <select class="form-select form-control" id="language" th:field="*{language}" required>
+                    <option value="" disabled>-- Select Language --</option>
+                    <option th:each="lang : ${languages}"
+                            th:value="${lang.id}"
+                            th:text="${lang.name}"
+                            th:selected="${lang.id == exercise.language.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="setupCode" class="form-label">Setup Code</label>
+                <textarea class="form-control" id="setupCode" th:field="*{setupCode}" rows="2"maxlength="5000" required></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="level" class="form-label">Difficulty Level</label>
+                <select class="form-select" id="level" th:field="*{level}" required>
+                    <option value="1" th:selected="${exercise.level == 1}">EASY</option>
+                    <option value="2" th:selected="${exercise.level == 2}">MEDIUM</option>
+                    <option value="3" th:selected="${exercise.level == 3}">HARD</option>
+                </select>
+            </div>
+
+            <!-- Test Cases -->
+            <div class="mb-3">
+                <label class="form-label">Test Cases</label>
+                <!-- Input ẩn để lưu danh sách test case bị xóa -->
+                <input type="hidden" id="testCasesToDelete" name="testCasesToDelete" value="">
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>Input</th>
+                        <th>Expected Output</th>
+                    </tr>
+                    </thead>
+                    <tbody id="testCasesContainer">
+                    <!-- Hiển thị danh sách TestCase đã có -->
+                    <tr th:each="testCase, stat : ${testCases}">
+                        <td>
+                            <input type="hidden" name="testCasesId[${stat.index}]" th:value="${testCase.id}" class="test-case-id">
+                            <input type="text" class="form-control" name="testCasesInput[${stat.index}]" th:value="${testCase.input}" required>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" name="testCasesOutput[${stat.index}]" th:value="${testCase.expectedOutput}" required>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="text-end">
+                    <button type="button" class="btn btn-success" onclick="addTestCase()">+</button>
+                    <button type="button" class="btn btn-danger" onclick="removeLastTestCase()">-</button>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex justify-content-end mt-4">
+                <button type="submit" class="btn btn-primary px-4 me-3 shadow-lg rounded-3">
+                    <i class="bi bi-save me-2"></i>Save
+                </button>
+                <a href="/exercises" class="btn btn-outline-secondary px-4 shadow-lg rounded-3">
+                    <i class="bi bi-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+
+        </form>
+    </div>
+
+    <!-- Script CKEditor và các hàm JavaScript -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+    <!-- Script JavaScript -->
+    <script>
+
+        let editor;
+        ClassicEditor
+            .create(document.querySelector('#description'))
+            .then(newEditor => {
+                editor = newEditor;
+                editor.setData(document.querySelector('#description').value);
+            })
+            .catch(error => console.error(error));
+
+        function syncCKEditor() {
+            if (editor) {
+                const data = editor.getData();
+                document.querySelector('#description').value = data;
+                // Kiểm tra nếu trống thì ngăn submit
+                if (!data || data.trim() === '') {
+                    alert('Description is required!');
+                    return false; // Ngăn submit form
+                }
+            }
+            return true; // Cho phép submit
+        }
+
+
+        function addTestCase() {
+            let container = document.getElementById("testCasesContainer");
+            let row = document.createElement("tr");
+            row.innerHTML = `
+                <td><input type="text" class="form-control" name="testCasesInputNew[]" placeholder="Input"></td>
+                <td><input type="text" class="form-control" name="testCasesOutputNew[]" placeholder="Expected Output"></td>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeLastTestCase() {
+            let container = document.getElementById("testCasesContainer");
+            if (container.children.length > 1) { // Giữ ít nhất 1 dòng
+                let lastRow = container.lastElementChild;
+                let testCaseIdInput = lastRow.querySelector('.test-case-id');
+                if (testCaseIdInput) { // Nếu dòng bị xóa có ID (test case cũ)
+                    let testCaseId = testCaseIdInput.value;
+                    let deleteInput = document.getElementById("testCasesToDelete");
+                    let currentDeleted = deleteInput.value ? deleteInput.value.split(',') : [];
+                    currentDeleted.push(testCaseId);
+                    deleteInput.value = currentDeleted.join(',');
+                }
+                container.removeChild(lastRow);
+            }
+        }
+    </script>
+    <script>
+        function setupCharLimitListener(inputId, warningId, maxLength) {
+            const input = document.getElementById(inputId);
+            const warning = document.getElementById(warningId);
+
+            input.addEventListener('input', () => {
+                if (input.value.length > maxLength) {
+                    warning.classList.remove('hidden');
+                } else {
+                    warning.classList.add('hidden');
+                }
+            });
+        }
+
+        // Gọi hàm cho từng trường
+        setupCharLimitListener('description', 'descWarning', 1000);
+        setupCharLimitListener('setupCode', 'codeWarning', 5000);
+        setupCharLimitListener('title', 'titleWarning', 100);
+    </script>
+
+</div>

@@ -1,0 +1,707 @@
+<div class="px-3 px-md-5" th:fragment="content">
+    <div class="container-fluid">
+        <div class="row border rounded shadow-sm" style="height: 75vh; overflow: hidden; background: #f8f9fa;">
+
+            <!-- Hidden Fields -->
+            <div class="field" style="display: none;">
+                <input id="currentUserId" name="currentUserId" required th:value="${currentUser.id}" type="text">
+                <input id="currentUserUsername" name="currentUserId" required th:value="${currentUser.username}" type="text">
+                <input id="currentConversationId" name="currentConversationId" th:value="${currentConversation.id}" type="text">
+            </div>
+
+            <!-- Sidebar Danh Sách Nhóm -->
+            <div class="col-lg-3 col-md-4 col-12 p-0 border-end bg-white" style="height: 75vh; transition: all 0.3s;">
+                <div class="p-3 border-bottom bg-light sticky-top">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="m-0 fw-bold text-dark">Group Conversations</h5>
+                        <a class="btn btn-outline-primary btn-sm rounded-circle" th:href="@{/chat-group/create}">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                    </div>
+
+                    <div class="input-group mb-2">
+                        <span class="input-group-text bg-white border-end-0" id="search-addon">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0 shadow-sm" placeholder="Search users..." aria-label="Search" aria-describedby="search-addon">
+                    </div>
+                </div>
+
+                <ul class="list-group list-group-flush overflow-auto" id="conversationList"
+                    style="height: calc(75vh - 120px);">
+                </ul>
+            </div>
+
+            <!-- Chat Area -->
+            <div class="col-lg-9 col-8 col-12 d-flex flex-column" style="height: 75vh">
+                <div class="p-3 border-bottom bg-white d-flex justify-content-between align-items-center shadow-sm">
+                    <button class="btn btn-outline-secondary d-md-none" id="mobileSidebarBtn" type="button">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <div class="d-flex align-items-center">
+                        <strong th:text="${currentConversation.name}" class="me-2 text-dark"></strong>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button id="uploadWidget" class="btn btn-light"><i class="bi bi-paperclip"></i></button>
+                    </div>
+                </div>
+
+                <!-- Message Display Area -->
+                <div class="flex-grow-1 p-3 bg-light overflow-auto" id="messageArea" style="max-height: calc(75vh - 140px);">
+                    <div th:each="message : ${messages}" class="d-flex mb-3 animate-message"
+                         th:classappend="${message.user.id == currentUser.id} ? 'justify-content-end' : 'justify-content-start'">
+                        <div class="p-3 rounded shadow-sm message-bubble"
+                             th:classappend="${message.user.id == currentUser.id} ? 'alert alert-primary' : 'bg-white text-dark'"
+                             style="max-width: 60%;">
+                            <div class="d-flex justify-content-between">
+                                <small class="fw-bold" th:text="${message.user.lastName} + ' ' + ${message.user.firstName}"></small>
+                            </div>
+
+                            <span th:text="${message.text}"></span>
+                            <div class="mt-1 text-start">
+                                <small th:class="${message.user.id == currentUser.id} ? 'message-timestamp text-primary' : 'message-timestamp text-muted'"
+                                       th:text="${#temporals.format(message.timestamp, 'HH:mm dd/MM/yyyy')}"></small>
+                            </div>
+
+                            <div th:if="${message.mediaUrl != null}">
+                                <!-- Debug (chỉ hiển thị trong môi trường dev) -->
+                                <span th:text="'Debug: ' + (${message.mediaType} ?: 'Không có mediaType')" th:remove="tag" th:if="${isDevelopment}"></span><br>
+                                <div style="width: 400px; height: 300px" th:if="${message.mediaType != null && #strings.contains(message.mediaType, 'image')}">
+                                    <img alt="Image" class="img-fluid rounded mt-1" th:src="${message.mediaUrl}">
+                                </div>
+                                <div th:if="${message.mediaType != null && #strings.contains(message.mediaType, 'video')}">
+                                    <video style="width: 400px; height: 300px" class="rounded mt-1" controls>
+                                        <source th:src="${message.mediaUrl}" th:type="${message.mediaType}">
+                                        Trình duyệt của bạn không hỗ trợ thẻ video.
+                                    </video>
+                                </div>
+                                <div th:if="${message.mediaType != null && #strings.contains(message.mediaType, 'sticker')}">
+                                    <img alt="Sticker" class="img-fluid rounded mt-1" th:src="${message.mediaUrl}" style="width: 80px; height: 80px;">
+                                </div>
+                                <div th:if="${message.mediaType != null && not #strings.contains(message.mediaType, 'image') && not #strings.contains(message.mediaType, 'video') && not #strings.contains(message.mediaType, 'sticker')}" style="display: flex; align-items: center;">
+                                    <a th:href="${message.mediaUrl}" target="_blank" class="text-decoration-underline">
+                                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUKajWR4QvFYjH-3Te2gut72BdDa_zjHxwsQ&s" alt="File Icon" style="width: 50px; height: 50px; margin-right: 10px;">
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message Input -->
+                <form class="p-3 border-top bg-white d-flex align-items-center gap-2" id="messageForm">
+                    <button class="btn btn-outline-secondary" id="speechToTextBtn" type="button">
+                        <i class="bi bi-mic-fill"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary" id="locationBtn" type="button">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary" id="stickerBtn" type="button">
+                        <i class="bi bi-emoji-smile"></i>
+                    </button>
+                    <input class="form-control shadow-sm" id="messageInput" placeholder="Type a message..." type="text"/>
+                    <button class="btn btn-primary" id="sendMessageBtn" type="submit">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticker Picker Modal -->
+    <div class="modal fade" id="stickerModal" tabindex="-1" aria-labelledby="stickerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="stickerModalLabel">Choose a Sticker</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="sticker-container d-flex flex-wrap justify-content-center gap-2">
+                        <!-- Stickers will be loaded here dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function (options) {
+            let offset = 0;
+            const limit = 7;
+            let loading = false;
+
+            // Sticker pack - predefined stickers
+            const stickerPack = [
+                {id: 1, url: '/sticker/sticker_1.png', alt: 'Sticker 1'},
+                {id: 2, url: '/sticker/sticker_2.png', alt: 'Sticker 2'},
+                // You can add more stickers as they become available in the static directory
+            ];
+
+            // Sticker related elements
+            const stickerBtn = document.getElementById('stickerBtn');
+            const stickerModal = new bootstrap.Modal(document.getElementById('stickerModal'));
+            const stickerContainer = document.querySelector('.sticker-container');
+
+            // Load stickers into the sticker picker
+            function loadStickers() {
+                stickerContainer.innerHTML = '';
+                stickerPack.forEach(sticker => {
+                    const stickerElement = document.createElement('div');
+                    stickerElement.classList.add('sticker-item');
+                    stickerElement.innerHTML = `
+                        <img src="${sticker.url}" alt="${sticker.alt}" class="img-fluid" style="width: 80px; height: 80px; cursor: pointer">
+                    `;
+                    stickerElement.addEventListener('click', () => {
+                        sendSticker(sticker);
+                        stickerModal.hide();
+                    });
+                    stickerContainer.appendChild(stickerElement);
+                });
+            }
+
+            // Send sticker function
+            function sendSticker(sticker) {
+                sendMessage({ preventDefault: () => {} }, sticker.url, 'sticker');
+            }
+
+            // Show sticker picker when button is clicked
+            stickerBtn.addEventListener('click', () => {
+                loadStickers();
+                stickerModal.show();
+            });
+
+            function loadGroupConversations() {
+                if (loading) return;
+                loading = true;
+                jQuery.ajax({
+                    url: "/chat-group/conversations",
+                    method: "GET",
+                    dataType: "json",
+                    data: { offset: offset, limit: limit },
+                    success: function (conversations) {
+                        let conversationList = $("#conversationList");
+
+                        // Nếu là lần load đầu tiên thì xóa nội dung cũ
+                        if (offset === 0) {
+                            conversationList.empty();
+                        }
+
+                        if (Array.isArray(conversations)) {
+                            conversations.forEach(conversation => {
+                                let listItem = `
+                            <li class="list-group-item border-0 p-0" data-user-id="${conversation.id}">
+                                <a href="/chat-group/${conversation.id}"
+                                   class="text-decoration-none text-dark d-flex align-items-center p-3 hover-bg-light transition-all">
+                                    <div class="position-relative me-3">
+                                        <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white" style="width: 45px; height: 45px; font-size: 1.2rem;">
+                                            <span>${conversation.name.charAt(0).toUpperCase()}</span>
+                                        </div>
+                                        <span class="position-absolute bottom-0 end-0 p-1 bg-success rounded-circle" style="width: 12px; height: 12px;"></span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                                <strong>${conversation.name}</strong>
+                                        </div>
+                                        <div class="small text-muted text-truncate user-last-message" style="max-width: 180px;">
+                                            ${conversation.lastMessage}
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-1">
+                                            <small class="text-muted user-time">${conversation.lastMessageTime}</small>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        `;
+                                conversationList.append(listItem);
+                            });
+
+                            // Cập nhật offset cho lần load tiếp theo
+                            offset += conversations.length;
+                        } else {
+                            console.error("Dữ liệu trả về không phải là một mảng:", conversations);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Đã xảy ra lỗi khi tải danh sách group chat.");
+                        console.error("Trạng thái:", status);
+                        console.error("Mã lỗi HTTP:", xhr.status);
+                        console.error("Thông báo lỗi:", error);
+                        console.error("Phản hồi từ server:", xhr.responseText);
+                        alert("Lỗi khi tải danh sách group chat. Kiểm tra console để biết thêm chi tiết.");
+                    },
+                    complete: function() {
+                        loading = false;
+                    }
+                });
+            }
+
+            // Load conversations ban đầu
+            loadGroupConversations();
+
+            // Thiết lập sự kiện scroll cho danh sách conversations
+            $("#conversationList").on("scroll", function() {
+                let $this = $(this);
+                // Nếu cuộn gần đến cuối container (cách cuối 50px)
+                if ($this.scrollTop() + $this.innerHeight() >= this.scrollHeight - 50) {
+                    loadGroupConversations();
+                }
+            });
+
+            var messageArea = document.querySelector('#messageArea');
+            var messageForm = document.querySelector('#messageForm');
+            var messageInput = document.querySelector('#messageInput');
+            var stompClient = null;
+            var currentUserId = Number($("#currentUserId").val());
+            var currentUserUsername = $("#currentUserUsername").val();
+            var currentConversationId = $("#currentConversationId").val();
+
+            if (currentUserId && currentUserUsername) {
+                var socket = new SockJS('/ws');
+                stompClient = Stomp.over(socket);
+                stompClient.connect({}, onConnected, onError);
+                messageForm.addEventListener('submit', sendMessage, true);
+            }
+
+            function onConnected() {
+                stompClient.subscribe(`/chat-group/${currentConversationId}`, onMessageReceived);
+            }
+
+            function onError() {
+                console.log('Could not connect to WebSocket server.');
+                console.log('Please refresh this page to try again!');
+            }
+
+            // Hàm hiển thị tin nhắn (tách ra để tái sử dụng)
+            function displayMessage(message) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('d-flex', 'mb-3', 'animate-message');
+                messageElement.classList.add(message.user.id === currentUserId ? 'justify-content-end' : 'justify-content-start');
+
+                const messageContent = document.createElement('div');
+                messageContent.classList.add('p-3', 'rounded', 'shadow-sm', 'message-bubble');
+                messageContent.style.maxWidth = '60%';
+                if (message.user.id === currentUserId) {
+                    messageContent.classList.add('alert', 'alert-primary');
+                } else {
+                    messageContent.classList.add('bg-white', 'text-dark');
+                }
+
+                // Header với username và timestamp
+                const headerDiv = document.createElement('div');
+                headerDiv.classList.add('d-flex', 'justify-content-between');
+                const senderName = document.createElement('small');
+                senderName.classList.add('fw-bold');
+                senderName.innerText = (message.user.lastName || '') + ' ' + (message.user.firstName || '');
+                headerDiv.appendChild(senderName);
+
+                messageContent.appendChild(headerDiv);
+
+                // Only add text message if it's not a sticker
+                if (message.mediaType !== 'sticker') {
+                    // Nội dung tin nhắn
+                    const messageText = document.createElement('span');
+                    // Check if message contains location link
+                    if (message.text && message.text.includes('📍 My current location: https://www.google.com/maps')) {
+                        const locationText = document.createElement('span');
+                        locationText.innerText = '📍 Current location: ';
+
+                        const locationLink = document.createElement('a');
+                        const mapUrl = message.text.split(': ')[1];
+                        locationLink.href = mapUrl;
+                        locationLink.target = '_blank';
+                        locationLink.innerText = mapUrl;
+                        locationLink.classList.add('text-decoration-underline');
+
+                        messageText.appendChild(locationText);
+                        messageText.appendChild(locationLink);
+                    } else {
+                        messageText.innerText = message.text;
+                    }
+                    messageContent.appendChild(messageText);
+                }
+
+                const timestampDiv = document.createElement('div');
+                timestampDiv.classList.add('mt-1', 'text-end');
+
+                const timestamp = document.createElement('small');
+                timestamp.classList.add('message-timestamp');
+                if (message.user.id === currentUserId) {
+                    timestamp.classList.add('text-primary'); // Màu xanh đậm cho người gửi
+                } else {
+                    timestamp.classList.add('text-muted'); // Màu xám nhạt cho người nhận
+                }
+                let formattedTime = "N/A";
+                if (message.timestamp) {
+                    let ts = message.timestamp;
+                    if (ts && ts.length > 23) {
+                        ts = ts.substring(0, 23) + 'Z';
+                    }
+                    const date = new Date(ts);
+                    if (!isNaN(date.getTime())) {
+                        date.setHours(date.getHours() - 7);
+                        formattedTime = date.toLocaleString('en-GB', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        }).replace(',', '');
+                    } else {
+                        console.error("Invalid timestamp:", ts);
+                    }
+                } else {
+                    console.error("Timestamp is undefined in message:", message);
+                }
+                timestamp.innerText = formattedTime;
+                timestampDiv.appendChild(timestamp);
+                messageContent.appendChild(timestampDiv);
+
+                // Xử lý media nếu có
+                if (message.mediaUrl) {
+                    const mediaDiv = document.createElement('div');
+
+                    // Handle stickers differently than other media
+                    if (message.mediaType === 'sticker') {
+                        const stickerImg = document.createElement('img');
+                        stickerImg.classList.add('img-fluid', 'rounded', 'mt-1');
+                        stickerImg.style.width = '150px';
+                        stickerImg.style.height = '150px';
+                        stickerImg.src = message.mediaUrl;
+                        stickerImg.alt = 'Sticker';
+                        mediaDiv.appendChild(stickerImg);
+                    } else if (message.mediaType && message.mediaType.startsWith('image')) {
+                        const mediaImage = document.createElement('img');
+                        mediaImage.classList.add('img-fluid', 'rounded', 'mt-1');
+                        mediaImage.style.width = '400px';
+                        mediaImage.style.height = '300px';
+                        mediaImage.src = message.mediaUrl;
+                        mediaImage.alt = 'Image';
+                        mediaDiv.appendChild(mediaImage);
+                    } else if (message.mediaType && message.mediaType.startsWith('video')) {
+                        const mediaVideo = document.createElement('video');
+                        mediaVideo.classList.add('rounded', 'mt-1');
+                        mediaVideo.style.width = '400px';
+                        mediaVideo.style.height = '300px';
+                        mediaVideo.controls = true;
+                        const source = document.createElement('source');
+                        source.src = message.mediaUrl;
+                        source.type = message.mediaType;
+                        mediaVideo.appendChild(source);
+                        mediaVideo.appendChild(document.createTextNode('Trình duyệt của bạn không hỗ trợ thẻ video.'));
+                        mediaDiv.appendChild(mediaVideo);
+                    } else {
+                        const mediaLinkContainer = document.createElement('div');
+                        mediaLinkContainer.style.display = 'flex';
+                        mediaLinkContainer.style.alignItems = 'center';
+                        const mediaLink = document.createElement('a');
+                        mediaLink.href = message.mediaUrl;
+                        mediaLink.target = '_blank';
+                        mediaLink.classList.add('text-decoration-underline');
+                        const fileIcon = document.createElement('img');
+                        fileIcon.src = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUKajWR4QvFYjH-3Te2gut72BdDa_zjHxwsQ&s';
+                        fileIcon.alt = 'File Icon';
+                        fileIcon.style.width = '50px';
+                        fileIcon.style.height = '50px';
+                        fileIcon.style.marginRight = '10px';
+                        mediaLinkContainer.appendChild(fileIcon);
+                        mediaLinkContainer.appendChild(mediaLink);
+                        mediaDiv.appendChild(mediaLinkContainer);
+                    }
+                    messageContent.appendChild(mediaDiv);
+                }
+
+                messageElement.appendChild(messageContent);
+                messageArea.appendChild(messageElement);
+
+                const conversationItem = document.querySelector(`[data-user-id="${message.conversation.id}"]`);
+                if (conversationItem) {
+                    console.log('Found conversationItem:', conversationItem);
+                    const lastMessageElement = conversationItem.querySelector('.user-last-message');
+                    if (lastMessageElement) {
+                        // Show appropriate text for stickers in conversation list
+                        if (message.mediaType === 'sticker') {
+                            lastMessageElement.textContent = 'Sticker';
+                        } else {
+                            lastMessageElement.textContent = message.text;
+                        }
+                    } else {
+                        console.log('lastMessageElement not found');
+                    }
+
+                    const lastMessageTimeElement = conversationItem.querySelector('.user-time');
+                    if (lastMessageTimeElement) {
+                        // Cập nhật thời gian tin nhắn mới
+                        let ts = message.timestamp;
+                        if (ts && ts.length > 23) {
+                            ts = ts.substring(0, 23) + 'Z';
+                        }
+                        const date = new Date(ts);
+                        date.setHours(date.getHours()); // Điều chỉnh -7 tiếng nếu server ở UTC+7
+                        const formattedTime = date.toLocaleString('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        lastMessageTimeElement.textContent = formattedTime;
+                        console.log('Formatted time (UTC):', formattedTime);
+                    }
+                }
+
+                const conversationListEl = document.querySelector('#conversationList');
+                if (conversationListEl && conversationItem.parentNode) {
+                    conversationListEl.prepend(conversationItem);
+                }
+
+                messageElement.appendChild(messageContent);
+                messageArea.appendChild(messageElement);
+                messageArea.scrollTop = messageArea.scrollHeight;
+            }
+
+            // Hàm gửi tin nhắn đã sửa
+            function sendMessage(event, mediaUrl = null, mediaType = null) {
+                event.preventDefault();
+                var messageContent = mediaUrl ? '' : messageInput.value.trim();
+
+                if ((messageContent || mediaUrl) && stompClient) {
+                    const chatMessage = {
+                        text: messageContent,
+                        mediaUrl: mediaUrl,
+                        mediaType: mediaType,
+                        timestamp: new Date().toISOString(),
+                        user: { id: currentUserId, username: currentUserUsername }, // Thêm username
+                        conversation: { id: currentConversationId }
+                    };
+
+                    // Gửi tin nhắn qua WebSocket
+                    stompClient.send("/app/chat-group.sendMessage", {}, JSON.stringify(chatMessage));
+
+                    // Hiển thị tin nhắn ngay lập tức trên giao diện
+                    displayMessage(chatMessage);
+
+                    // Xóa nội dung input
+                    messageInput.value = '';
+                }
+            }
+
+            // Xử lý tin nhắn nhận được từ server
+            function onMessageReceived(payload) {
+                const message = JSON.parse(payload.body);
+                console.log("Received message:", message);
+
+                // Nếu mediaType bị null, tự động xác định dựa vào URL
+                if (!message.mediaType && message.mediaUrl) {
+                    if (message.mediaUrl.match(/\.(jpeg|jpg|png|gif)$/i)) {
+                        message.mediaType = 'image';
+                    } else if (message.mediaUrl.match(/\.(mp4|webm|ogg)$/i)) {
+                        message.mediaType = 'video';
+                    } else {
+                        message.mediaType = 'file';
+                    }
+                }
+
+                // Chỉ hiển thị nếu không phải tin nhắn của người dùng hiện tạ
+                if (message.user.id !== currentUserId) {
+                    displayMessage(message);
+                }
+            }
+
+            let conversationIdToDelete = null;
+
+            $(document).on("click", ".delete-conversation", function () {
+                conversationIdToDelete = $(this).data("conversation-id");
+                console.log("Nhấn 'Xóa đoạn chat', conversationIdToDelete:", conversationIdToDelete); // Log giá trị
+                $("#confirmDeleteModal").modal("show");
+            });
+
+            $(document).on("click", "#closeDeleteModalBtn, #closeDeleteModalBtnFooter", function () {
+                $("#confirmDeleteModal").modal("hide");
+                conversationIdToDelete = null;
+            });
+
+            $(document).on("click", "#confirmDeleteBtn", function () {
+                console.log("Nhấn nút 'Xóa' trong modal, conversationIdToDelete:", conversationIdToDelete);
+                if (conversationIdToDelete) {
+                    console.log("Đang gửi yêu cầu xóa cuộc trò chuyện với ID:", conversationIdToDelete);
+                    $.ajax({
+                        url: `/chat-group/delete/${conversationIdToDelete}`,
+                        type: "POST",
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        success: function (response) {
+                            console.log("Xóa thành công, phản hồi từ server:", response);
+                            const conversationItem = $(`li[data-user-id="${conversationIdToDelete}"]`);
+                            if (conversationItem.length) {
+                                conversationItem.remove();
+                                console.log("Đã xóa cuộc trò chuyện khỏi danh sách");
+                            } else {
+                                console.warn("Không tìm thấy cuộc trò chuyện trong danh sách để xóa");
+                            }
+                            if (currentConversationId == conversationIdToDelete) {
+                                $("#messageArea").empty();
+                                $("#currentConversationId").val("");
+                                console.log("Đã làm trống khu vực tin nhắn và reset currentConversationId");
+                            }
+                            $("#confirmDeleteModal").modal("hide");
+                            location.reload();
+                            conversationIdToDelete = null;
+                        },
+                        error: function (xhr, status, error) {
+                            console.error("Lỗi khi xóa đoạn chat - Trạng thái:", status);
+                            console.error("Mã lỗi HTTP:", xhr.status);
+                            console.error("Phản hồi từ server:", xhr.responseText);
+                            alert("Lỗi khi xóa đoạn chat. Kiểm tra console để biết chi tiết!");
+                        }
+                    });
+                } else {
+                    console.error("Không có conversationIdToDelete để xóa");
+                }
+            });
+
+            // Mobile sidebar toggle
+            document.querySelector('#mobileSidebarBtn').addEventListener('click', () => {
+                document.querySelector('.col-lg-3').classList.toggle('d-none');
+            });
+
+            document.getElementById('speechToTextBtn').addEventListener('click', function() {
+                const speechButton = document.getElementById("speechToTextBtn");
+                const messageInput = document.getElementById("messageInput");
+                const messageForm = document.getElementById("messageForm");
+
+                if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+                    speechButton.disabled = true;
+                    speechButton.title = "Trình duyệt không hỗ trợ Speech-to-Text";
+                    return;
+                }
+
+                const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.lang = "vi-VN"; // Hỗ trợ tiếng Việt
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+                let isListening = false;
+
+                speechButton.addEventListener("click", () => {
+                    if (!isListening) {
+                        isListening = true;
+                        speechButton.classList.add("btn-danger");
+                        recognition.start();
+                    } else {
+                        isListening = false;
+                        recognition.abort(); // Dùng abort() thay vì stop() để tránh lỗi
+                        speechButton.classList.remove("btn-danger");
+                    }
+                });
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    messageInput.value = transcript;
+                };
+
+                recognition.onend = () => {
+                    if (isListening) {
+                        recognition.start(); // Khởi động lại nếu chưa bấm dừng
+                    } else {
+                        speechButton.classList.remove("btn-danger");
+
+                        // Tự động gửi tin nhắn nếu có nội dung
+                        if (messageInput.value.trim() !== "") {
+                            setTimeout(() => {
+                                messageForm.dispatchEvent(new Event("submit", { bubbles: true }));
+                            }, 500);
+                        }
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    console.error("Lỗi nhận diện giọng nói:", event.error);
+                    if (event.error !== "aborted") {
+                        isListening = false;
+                        speechButton.classList.remove("btn-danger");
+                    }
+                };
+            }, false);
+
+            // Xử lý upload file qua Cloudinary
+            document.getElementById('uploadWidget').addEventListener('click', function() {
+                cloudinary.openUploadWidget({
+                    cloudName: 'dorvllntp',
+                    uploadPreset: 'lmschat',
+                    sources: ['local', 'url', 'camera'],
+                    multiple: true,
+                    resourceType: 'auto',
+                    maxFileSize: 10485760
+                }, function(error, result) {
+                    if (error) {
+                        if (error.message === 'File size exceeds the maximum limit') {
+                            alert('File quá lớn! Vui lòng chọn file nhỏ hơn 10 MB.');
+                        } else {
+                            console.error('Lỗi tải file:', error);
+                        }
+                    } else if (result && result.event === "success") {
+                        var fileUrl = result.info.secure_url;
+                        var fileType = result.info.resource_type === 'image' ? 'image/' + result.info.format :
+                            result.info.resource_type === 'video' ? 'video/' + result.info.format :
+                                'application/' + (result.info.format || 'unknown');
+                        console.log('Sending file:', fileUrl, fileType);
+                        sendMessage({ preventDefault: () => {} }, fileUrl, fileType);
+                    }
+                });
+            }, false);
+
+            // Location sharing feature
+            document.getElementById('locationBtn').addEventListener('click', function() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+                            const locationUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+                            const locationMessage = `📍 My current location: ${locationUrl}`;
+
+                            // Set the location text to the input field
+                            document.getElementById('messageInput').value = locationMessage;
+
+                            // You can also send directly
+                            // sendMessage({ preventDefault: () => {} }, locationUrl, 'location/coords');
+                        },
+                        function(error) {
+                            console.error("Error getting location:", error);
+                            let errorMessage = "Unable to get current location. ";
+
+                            // More specific error messages based on error code
+                            if (error.code === 1) { // PERMISSION_DENIED
+                                errorMessage += "You've denied location access. Please follow these steps to grant permission:\n\n" +
+                                    "- Chrome: Click the lock/info icon to the left of URL > Permissions > Location > Allow\n" +
+                                    "- Firefox: Click the lock icon to the left of URL > Clear settings > Try again\n" +
+                                    "- Safari: Settings > Safari > Privacy & Security > Location Services > Enable";
+                            } else if (error.code === 2) { // POSITION_UNAVAILABLE
+                                errorMessage += "Location is currently unavailable. Please check your network and GPS.";
+                            } else if (error.code === 3) { // TIMEOUT
+                                errorMessage += "Location request timed out. Please try again.";
+                            }
+
+                            alert(errorMessage);
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0
+                        }
+                    );
+                } else {
+                    alert("Your browser doesn't support GPS location.");
+                }
+            }, false);
+
+            messageArea.scrollTop = messageArea.scrollHeight;
+        });
+    </script>
+</div>

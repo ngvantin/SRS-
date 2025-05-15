@@ -1,0 +1,443 @@
+<div class="px-5" th:fragment="content">
+    <div class="container-fluid py-2">
+        <!-- Header -->
+        <div class="col-12 text-center mb-4">
+            <h1 class="fw-bold" style="font-size: clamp(1.5rem, 5vw, 2.5rem);">Quizzes</h1>
+        </div>
+
+        <!-- Alerts Section -->
+        <div class="mb-4">
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle fa-lg me-2"></i>
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+
+        <!-- Search and Actions Bar -->
+        <div class="card-body mb-3">
+            <div class="row align-items-center gy-3 flex-wrap">
+                <!-- Search Form -->
+                <div class="col-12 col-md-6 d-flex flex-column flex-md-row gap-2">
+                    <form th:action="@{/quizzes}" method="get" class="d-flex flex-column flex-md-row gap-2 w-100" id="searchForm">
+                        <select class="form-select" style="max-width: 100%;" name="courseId" onchange="document.getElementById('searchForm').submit()">
+                            <option value="">All Courses</option>
+                            <option th:each="course : ${courses}" th:value="${course.id}" th:text="${course.name}"
+                                    th:selected="${courseId != null && courseId == course.id}"></option>
+                        </select>
+                        <div class="input-group w-100">
+                            <input type="text" class="form-control" name="searchTerm" th:value="${searchTerm}"
+                                   placeholder="Search by quiz name" aria-label="Quiz search">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm" aria-label="Search" title="Search">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    <!-- Refresh Button -->
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.location.href='/quizzes'"
+                            title="Reload" aria-label="Reload quizzes">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-12 col-md-6 d-flex justify-content-md-end gap-2 flex-wrap">
+                    <a th:href="@{/quizzes/create-ai}" class="btn btn-outline-secondary flex-grow-1 flex-md-grow-0 btn-sm" title="Create Quiz using AI">
+                        <i class="bi bi-robot"></i>
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary flex-grow-1 flex-md-grow-0 btn-sm" data-bs-toggle="modal" data-bs-target="#importModal" title="Import Quizzes">
+                        <i class="bi bi-upload"></i>
+                    </button>
+                    <a th:href="@{/quizzes/export}" class="btn btn-outline-secondary flex-grow-1 flex-md-grow-0 btn-sm" title="Export">
+                        <i class="bi bi-file-earmark-excel"></i>
+                    </a>
+                    <a th:href="@{/quizzes/print}" class="btn btn-outline-secondary flex-grow-1 flex-md-grow-0 btn-sm" target="_blank">
+                        <i class="bi bi-printer"></i>
+                    </a>
+                    <a href="/quizzes/new" class="btn btn-primary flex-grow-1 flex-md-grow-0 btn-sm" title="Create New Quiz">
+                        <i class="bi bi-plus-circle"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Modal -->
+        <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+            <div class="modal-dialog" style="max-width: 90vw;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importModalLabel">Import Quizzes</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- Excel Upload Section -->
+                            <div class="col-md-6">
+                                <p>Download the Excel template before uploading your file:</p>
+                                <a th:href="@{/quizzes/download-template}" class="text-primary text-decoration-underline">
+                                    Download Quiz Template
+                                </a>
+                                <form th:action="@{/quizzes/import}" method="post" enctype="multipart/form-data" class="mt-3">
+                                    <div class="mb-3">
+                                        <label for="fileInput" class="form-label">Choose Excel File</label>
+                                        <input type="file" name="file" id="fileInput" class="form-control" accept=".xlsx,.xls" required>
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-outline-success">
+                                            <i class="bi bi-upload"></i> Import
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- JSON Upload Section -->
+                            <div class="col-md-6">
+                                <p>Download the JSON template before uploading your file:</p>
+                                <a th:href="@{/quizzes/download-json-template}" class="text-primary text-decoration-underline">
+                                    Download JSON Quiz Template
+                                </a>
+                                <form th:action="@{/quizzes/importjson}" method="post" enctype="multipart/form-data" class="mt-3">
+                                    <div class="mb-3">
+                                        <label for="jsonInput" class="form-label">Choose JSON File</label>
+                                        <input type="file" name="json" id="jsonInput" class="form-control" accept=".json" required>
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-outline-success">
+                                            <i class="bi bi-upload"></i> Import
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs" id="quizTabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#customQuizzes" onclick="localStorage.setItem('activeTab', 'customQuizzes')">Custom Quizzes</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#quizBank" onclick="localStorage.setItem('activeTab', 'quizBank')">Quiz Bank</a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content mt-3">
+            <!-- Custom Quizzes -->
+            <div class="tab-pane fade show active" id="customQuizzes">
+                <div th:switch="${#lists.isEmpty(customQuizzes.content)}">
+                    <div th:case="false" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+                        <div class="col d-flex align-items-stretch" th:each="quiz : ${customQuizzes.content}">
+                            <div class="card h-100 shadow-lg border-0 rounded-3 p-2 d-flex flex-column" style="width: 100%; max-width: 100%;">
+                                <h6 class="card-title text-start mt-2 fw-bold px-2 text-truncate" style="font-size: clamp(12px, 2vw, 15px);" th:text="${quiz.name}"></h6>
+                                <div class="flex-grow-1 d-flex flex-column justify-content-between px-2">
+                                    <p class="card-text text-start text-muted text-truncate" style="font-size: clamp(10px, 1.5vw, 12px);" th:text="'Course: ' + ${quiz.course.getName()}"></p>
+                                    <div class="d-flex justify-content-between align-items-center" style="font-size: clamp(10px, 1.5vw, 12px);">
+                                        <span class="text-muted"><i class="bi bi-question-circle me-1"></i><span th:text="${quiz.questions.size()}"></span> Questions</span>
+                                        <span class="text-muted"><i class="bi bi-person me-1"></i>0</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-white d-flex justify-content-end gap-2 p-2 flex-wrap">
+                                    <input type="checkbox" class="select-quiz-custom" th:value="${quiz.id}"/>
+                                    <a th:href="@{/quizzes/detail/{id}(id=${quiz.id})}" class="btn btn-outline-secondary btn-sm" title="Detail">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{/quizzes/preview/{id}(id=${quiz.id})}" class="btn btn-outline-secondary btn-sm" title="Preview">
+                                        <i class="bi bi-file-earmark-text"></i>
+                                    </a>
+                                    <a th:href="@{/quizzes/edit/{id}(id=${quiz.id})}" class="btn btn-outline-primary btn-sm" title="Edit">
+                                        <i class="bi bi-pen"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger btn-sm delete-btn-custom" th:data-id="${quiz.id}" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:case="true" class="card border-0 shadow-sm p-4 text-center">
+                        <div class="py-5">
+                            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                            <h5>No Custom Quizzes Found</h5>
+                            <p class="text-muted">There are no custom quizzes available or matching your search criteria.</p>
+                            <a href="/quizzes/new" class="btn btn-outline-primary mt-2">
+                                <i class="fas fa-plus me-1"></i> Create Quiz
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pagination and Delete Selected -->
+                <div class="mt-4 mb-3 d-flex flex-column flex-md-row justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <button type="button" id="selectAllCustomBtn" class="btn btn-outline-primary d-flex align-items-center">
+                            <i class="fas fa-check-square me-2"></i> Select All
+                        </button>
+                        <button type="button" id="deleteSelectedCustomBtn" class="btn btn-danger d-flex align-items-center" disabled>
+                            <i class="fas fa-trash-alt me-2"></i> Delete Selected (<span id="selectedCountCustom">0</span>)
+                        </button>
+                        <span class="fw-bold">Total Records: <span th:text="${customQuizzes.totalElements}">0</span></span>
+                    </div>
+                    <nav aria-label="Custom quiz pagination">
+                        <ul class="pagination mb-0 d-flex flex-wrap justify-content-center gap-1">
+                            <li class="page-item" th:classappend="${customQuizzes.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/quizzes(page=0, size=${customQuizzes.size}, searchTerm=${searchTerm}, courseId=${courseId})}" aria-label="First">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item" th:classappend="${customQuizzes.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/quizzes(page=${customQuizzes.number - 1}, size=${customQuizzes.size}, searchTerm=${searchTerm}, courseId=${courseId})}" aria-label="Previous">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            <th:block th:each="i : ${#numbers.sequence(customQuizzes.number - 1, customQuizzes.number + 1)}"
+                                      th:if="${i >= 0 and i < customQuizzes.totalPages}">
+                                <li class="page-item" th:classappend="${customQuizzes.number == i} ? 'active'">
+                                    <a class="page-link" th:href="@{/quizzes(page=${i}, size=${customQuizzes.size}, searchTerm=${searchTerm}, courseId=${courseId})}" th:text="${i + 1}"></a>
+                                </li>
+                            </th:block>
+                            <li class="page-item" th:classappend="${customQuizzes.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/quizzes(page=${customQuizzes.number + 1}, size=${customQuizzes.size}, searchTerm=${searchTerm}, courseId=${courseId})}" aria-label="Next">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item" th:classappend="${customQuizzes.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/quizzes(page=${customQuizzes.totalPages - 1}, size=${customQuizzes.size}, searchTerm=${searchTerm}, courseId=${courseId})}" aria-label="Last">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Quiz Bank -->
+            <div class="tab-pane fade" id="quizBank">
+                <div th:switch="${#lists.isEmpty(quizBank.content)}">
+                    <div th:case="false" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+                        <div class="col d-flex align-items-stretch" th:each="quiz : ${quizBank.content}">
+                            <div class="card h-100 shadow-lg border-0 rounded-3 p-2 d-flex flex-column" style="width: 100%; max-width: 100%;">
+                                <h6 class="card-title text-start mt-2 fw-bold px-2 text-truncate" style="font-size: clamp(12px, 2vw, 15px);" th:text="${quiz.name}"></h6>
+                                <div class="flex-grow-1 d-flex flex-column justify-content-between px-2">
+                                    <p class="card-text text-start text-muted text-truncate" style="font-size: clamp(10px, 1.5vw, 12px);" th:text="'Course: ' + ${quiz.course.getName()}"></p>
+                                    <div class="d-flex justify-content-between align-items-center" style="font-size: clamp(10px, 1.5vw, 12px);">
+                                        <span class="text-muted"><i class="bi bi-question-circle me-1"></i><span th:text="${quiz.questions.size()}"></span> Questions</span>
+                                        <span class="text-muted"><i class="bi bi-person me-1"></i>0</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-white d-flex justify-content-end gap-2 p-2 flex-wrap">
+                                    <enter code hereinput type="checkbox" class="select-quiz-bank" th:value="${quiz.id}"/>
+                                    <a th:href="@{/quizzes/detail/{id}(id=${quiz.id})}" class="btn btn-outline-secondary btn-sm" title="Detail">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{/quizzes/edit/{id}(id=${quiz.id})}" class="btn btn-outline-primary btn-sm" title="Edit">
+                                        <i class="bi bi-pen"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger btn-sm delete-btn-bank" th:data-id="${quiz.id}" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:case="true" class="card border-0 shadow-sm p-4 text-center">
+                        <div class="py-5">
+                            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                            <h5>No Quiz Bank Found</h5>
+                            <p class="text-muted">There are no quizzes available in the quiz bank or matching your search criteria.</p>
+                            <a href="/quizzes/new" class="btn btn-outline-primary mt-2">
+                                <i class="fas fa-plus me-1"></i> Create Quiz
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pagination and Delete Selected -->
+                <div class="mt-4 mb-3 d-flex flex-column flex-md-row justify-content-between align-items-center flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <button type="button" id="selectAllBankBtn" class="btn btn-outline-primary d-flex align-items-center">
+                            <i class="fas fa-check-square me-2"></i> Select All
+                        </button>
+                        <button type="button" id="deleteSelectedBankBtn" class="btn btn-danger d-flex align-items-center" disabled>
+                            <i class="fas fa-trash-alt me-2"></i> Delete Selected (<span id="selectedCountBank">0</span>)
+                        </button>
+                        <span class="fw-bold">Total Records: <span th:text="${quizBank.totalElements}">0</span></span>
+                    </div>
+                    <nav aria-label="Quiz bank pagination">
+                        <ul class="pagination mb-0 d-flex flex-wrap justify-content-center gap-1">
+                            <li class="page-item" th:classappend="${quizBank.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/quizzes(page=0, size=${quizBank.size}, searchTerm=${searchTerm}, courseId=${courseId})}" aria-label="First">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item" th:classappend="${quizBank.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/quizzes(page=${quizBank.number - 1}, size=${quizBank.size}, searchTerm=${searchTerm}, courseId=${courseId})}" aria-label="Previous">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                            <th:block th:each="i : ${#numbers.sequence(quizBank.number - 1, quizBank.number + 1)}"
+                                      th:if="${i >= 0 and i < quizBank.totalPages}">
+                                <li class="page-item" th:classappend="${quizBank.number == i} ? 'active'">
+                                    <a class="page-link" th:href="@{/quizzes(page=${i}, size=${quizBank.size}, searchTerm=${searchTerm}, courseId=${courseId})}" th:text="${i + 1}"></a>
+                                </li>
+                            </th:block>
+                            <li class="page-item" th:classappend="${quizBank.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/quizzes(page=${quizBank.number + 1}, size=${quizBank.size}, searchTerm=${searchTerm}, courseId=${courseId})}" aria-label="Next">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item" th:classappend="${quizBank.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/quizzes(page=${quizBank.totalPages - 1}, size=${quizBank.size}, searchTerm=${searchTerm}, courseId=${courseId})}" aria-label="Last">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSS Inline -->
+    <style>
+        .card-body, .card-footer {
+            padding: 1rem clamp(0.5rem, 2vw, 1rem);
+        }
+        .btn {
+            padding: clamp(0.25rem, 1vw, 0.5rem);
+            font-size: clamp(12px, 2vw, 16px);
+        }
+        .form-control, .form-select {
+            width: 100%;
+            max-width: 100%;
+        }
+    </style>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tab persistence
+            const activeTab = localStorage.getItem('activeTab') || 'customQuizzes';
+            if (activeTab === 'quizBank') {
+                document.querySelector('#quizBank').classList.add('show', 'active');
+                document.querySelector('#customQuizzes').classList.remove('show', 'active');
+                document.querySelector('[href="#quizBank"]').classList.add('active');
+                document.querySelector('[href="#customQuizzes"]').classList.remove('active');
+            }
+
+            // Hàm cập nhật số lượng quiz được chọn và trạng thái nút Delete
+            function updateDeleteButton(tab) {
+                const checkboxes = document.querySelectorAll(`.select-quiz-${tab.toLowerCase()}`);
+                const deleteBtn = document.getElementById(`deleteSelected${tab}Btn`);
+                const selectedCountSpan = document.getElementById(`selectedCount${tab}`);
+                const checkedCount = [...checkboxes].filter(cb => cb.checked).length;
+                selectedCountSpan.textContent = checkedCount;
+                deleteBtn.disabled = checkedCount === 0;
+            }
+
+            function handleSelectAll(tab) {
+                const selectAllBtn = document.getElementById(`selectAll${tab}Btn`);
+                const checkboxes = document.querySelectorAll(`.select-quiz-${tab.toLowerCase()}`);
+                let allSelected = [...checkboxes].every(cb => cb.checked);
+
+                selectAllBtn.addEventListener('click', () => {
+                    allSelected = !allSelected; // Chuyển đổi trạng thái
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = allSelected;
+                    });
+                    selectAllBtn.innerHTML = allSelected
+                        ? '<i class="fas fa-square me-2"></i> Deselect All'
+                        : '<i class="fas fa-check-square me-2"></i> Select All';
+                    updateDeleteButton(tab);
+                });
+            }
+            // Xử lý cho từng tab: Custom Quizzes và Quiz Bank
+            ['Custom', 'Bank'].forEach(tab => {
+                const checkboxes = document.querySelectorAll(`.select-quiz-${tab.toLowerCase()}`);
+                const deleteBtn = document.getElementById(`deleteSelected${tab}Btn`);
+
+                // Cập nhật trạng thái khi checkbox thay đổi
+                checkboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', () => updateDeleteButton(tab));
+                });
+
+                // Xử lý xóa từng quiz
+                document.querySelectorAll(`.delete-btn-${tab.toLowerCase()}`).forEach(button => {
+                    button.addEventListener('click', function () {
+                        const quizId = this.getAttribute('data-id');
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: "You won't be able to revert this!",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Yes, delete it!'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                const form = document.createElement('form');
+                                form.method = 'POST';
+                                form.action = `/quizzes/delete/${quizId}`;
+                                document.body.appendChild(form);
+                                form.submit();
+                            }
+                        });
+                    });
+                });
+
+                // Xử lý xóa nhiều quiz được chọn
+                deleteBtn.addEventListener('click', function () {
+                    const selectedIds = [...document.querySelectorAll(`.select-quiz-${tab.toLowerCase()}:checked`)]
+                        .map(cb => cb.value);
+
+                    if (selectedIds.length === 0) {
+                        Swal.fire('Warning', 'Please select at least one quiz to delete.', 'warning');
+                        return;
+                    }
+
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: `You are about to delete ${selectedIds.length} quiz(zes).`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, delete them!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            fetch('/quizzes/delete-selected', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ ids: selectedIds })
+                            })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        return response.text().then(text => {
+                                            throw new Error(text || 'Failed to delete quizzes');
+                                        });
+                                    }
+                                    return response.text();
+                                })
+                                .then(() => {
+                                    Swal.fire('Deleted!', 'Selected-quizzes have been deleted.', 'success')
+                                        .then(() => window.location.reload());
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    Swal.fire('Error', error.message, 'error');
+                                });
+                        }
+                    });
+                });
+
+                // Khởi tạo trạng thái ban đầu
+                updateDeleteButton(tab);
+                handleSelectAll(tab);
+            });
+        });
+    </script>
+</div>

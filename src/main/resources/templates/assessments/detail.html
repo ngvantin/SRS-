@@ -1,0 +1,192 @@
+<div class="px-5" th:fragment="content">
+    <link rel="stylesheet" th:href="@{/css/assessments/assessment-feedback-student.css}"/>
+    <input type="hidden" id="assessment-id" th:value="${assessment.id}">
+    <div class="container mt-4">
+        <h2 class="text-center mb-4">Assessment Details</h2>
+
+        <div class="card p-4 mb-4 shadow">
+            <h3><b th:text="${assessment.title}"></b></h3>
+            <p><b>Course:</b> <span th:text="${assessment.course.name}"></span></p>
+            <p>
+                <b>Assessment Type:</b>
+                <span th:text="${assessment.assessmentType.name}"></span>
+            </p>
+            <p>
+                <b>Time Limit:</b>
+                <span th:text="${assessment.timeLimit}"></span> minutes
+            </p>
+            <p>
+                <b>Total Score:</b> <span th:text="${assessment.totalScore}"></span>
+            </p>
+            <p>
+                <b>Minimum Score:</b> <span th:text="${assessment.minimumScore}"></span>
+            </p>
+
+            <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-dark" onclick="window.history.back()">
+                    Back
+                </button>
+            </div>
+        </div>
+
+        <!-- Exercises & Questions Section -->
+        <div class="row">
+            <!-- Exercises -->
+            <div class="col-md-6">
+                <div class="card p-4 shadow">
+                    <h4>Exercises</h4>
+                    <div th:if="${exercises != null and !exercises.isEmpty()}">
+                        <div
+                                th:each="exercise : ${exercises}"
+                                class="border rounded p-2 mb-2"
+                        >
+                            <a
+                                    th:text="${exercise.title}"
+                                    th:href="@{/exercises/{id}(id=${exercise.id})}"
+                                    class="btn btn-light"
+                                    target="_blank"
+                            ></a>
+                        </div>
+                    </div>
+                    <p th:if="${exercises == null or exercises.isEmpty()}">
+                        No exercises available.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Questions -->
+            <div class="col-md-6">
+                <div class="card p-4 shadow">
+                    <h4>Multiple Choice</h4>
+                    <div th:if="${questions != null and !questions.isEmpty()}">
+                        <div
+                                th:each="question : ${questions}"
+                                class="border rounded p-2 mb-2"
+                        >
+                            <p th:text="${question.text}"></p>
+                        </div>
+                    </div>
+                    <p th:if="${questions == null or questions.isEmpty()}">
+                        No questions assigned.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Section -->
+        <div class="card p-4 mt-4 shadow">
+            <h4 class="mb-4 d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="bi bi-chat-square-text me-2"></i>
+                    Feedback
+                    <div class="ms-3 d-inline-block">
+            <span class="badge bg-warning text-dark">
+              <i class="bi bi-star-fill me-1"></i>
+              <span id="averageRating">0.0</span>
+              <small class="ms-1"
+              >(<span id="totalFeedbacks">0</span> feedbacks)</small
+              >
+            </span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <label class="me-2 text-muted">Sort by:</label>
+                    <select
+                            id="sortOption"
+                            class="form-select form-select-sm"
+                            style="width: auto"
+                    >
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="highest">Highest Rating</option>
+                        <option value="lowest">Lowest Rating</option>
+                    </select>
+                </div>
+            </h4>
+
+            <!-- Form thêm feedback -->
+            <div class="mb-4 bg-light p-4 rounded">
+                <form id="feedbackForm">
+                    <h5 class="mb-3 text-primary">Share Your Opinion</h5>
+                    <div class="form-group mb-3">
+                        <label for="rating" class="fw-bold">Rating:</label>
+                        <div class="rating-input d-flex align-items-center mt-2">
+                            <div class="star-rating">
+                                <input type="radio" id="star5" name="rating" value="5"/><label
+                                    for="star5"
+                            ><i class="bi bi-star-fill"></i
+                            ></label>
+                                <input type="radio" id="star4" name="rating" value="4"/><label
+                                    for="star4"
+                            ><i class="bi bi-star-fill"></i
+                            ></label>
+                                <input type="radio" id="star3" name="rating" value="3"/><label
+                                    for="star3"
+                            ><i class="bi bi-star-fill"></i
+                            ></label>
+                                <input type="radio" id="star2" name="rating" value="2"/><label
+                                    for="star2"
+                            ><i class="bi bi-star-fill"></i
+                            ></label>
+                                <input type="radio" id="star1" name="rating" value="1"/><label
+                                    for="star1"
+                            ><i class="bi bi-star-fill"></i
+                            ></label>
+                            </div>
+                            <input type="hidden" id="rating" required/>
+                            <span class="ms-3 rating-text"></span>
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="comment" class="fw-bold">Comment:</label>
+                        <div class="position-relative">
+              <textarea
+                      class="form-control mt-2"
+                      id="comment"
+                      rows="3"
+                      placeholder="Tell us what you think..."
+                      required
+                      maxlength="100"
+              ></textarea>
+                            <small class="text-muted position-absolute end-0 bottom-0 m-2">
+                                <span id="charCount">100</span> characters remaining
+                            </small>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send me-1"></i> Submit Feedback
+                    </button>
+                </form>
+            </div>
+
+            <!-- Danh sách feedback -->
+            <div id="feedbackList" class="mt-4">
+                <div class="text-center py-3 text-muted">
+                    <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span class="ms-2">Loading feedback...</span>
+                </div>
+            </div>
+
+            <!-- Pagination controls -->
+            <div id="feedbackPagination" class="d-flex justify-content-center mt-4">
+                <nav aria-label="Feedback pagination">
+                    <ul class="pagination">
+                        <li class="page-item" id="prevPage">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item" id="nextPage">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/js/assessments/assessment-feedback-student.js}"></script>
+</div>

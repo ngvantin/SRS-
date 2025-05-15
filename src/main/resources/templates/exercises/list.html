@@ -1,0 +1,466 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="container py-2">
+        <!-- Header -->
+        <div class="col-12 text-center mb-4">
+            <h1 class="fw-bold">Exercises</h1>
+        </div>
+        <style>
+            #cardView {
+                display: none;
+            }
+        </style>
+        <!-- Alerts Section -->
+        <div th:fragment="alerts" class="mb-4">
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle fa-lg me-2"></i>
+                    <span th:text="${success}"></span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-circle fa-lg me-2"></i>
+                    <span th:text="${error}"></span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+
+        <!-- Search and Actions Bar -->
+        <div class="card-body mb-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex justify-content-start align-items-center mb-3 gap-3">
+                    <form id="searchForm" method="get" action="/exercises" class="d-flex gap-2">
+                        <!-- Search Input -->
+                        <input type="text" class="form-control w-auto" name="search"
+                               placeholder="Search by exercise name" th:value="${search}">
+
+                        <!-- Language Dropdown -->
+                        <select id="language" name="languageId" class="form-select w-auto" onchange="this.form.submit();">
+                            <option value="">All Languages</option>
+                            <option th:each="lang : ${languages}"
+                                    th:value="${lang.id}"
+                                    th:text="${lang.name}"
+                                    th:selected="${selectedLanguageId == lang.id}">
+                            </option>
+                        </select>
+
+                        <!-- Level Dropdown -->
+                        <select id="level" name="level" class="form-select w-auto" onchange="this.form.submit();">
+                            <option value="">All Levels</option>
+                            <option value="1" th:selected="${level == 1}">Easy</option>
+                            <option value="2" th:selected="${level == 2}">Medium</option>
+                            <option value="3" th:selected="${level == 3}">Hard</option>
+                        </select>
+
+                        <!-- Search Button -->
+                        <button type="button" class="btn btn-outline-secondary" onclick="submitSearch()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2">
+                    <button id="switchViewBtn" class="btn btn-outline-secondary" onclick="toggleView()" title="Switch to Card View">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                    </button>
+                    <!-- Import Button -->
+                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importModal" title="Import">
+                        <i class="bi bi-upload"></i>
+                    </button>
+                    <!-- Export Button -->
+                    <a th:href="@{/exercises/export}" class="btn btn-outline-secondary" title="Export">
+                        <i class="bi bi-file-earmark-excel"></i>
+                    </a>
+                    <!-- Print Button -->
+                    <a href="/exercises/print" class="btn btn-outline-secondary" title="Print">
+                        <i class="bi bi-printer"></i>
+                    </a>
+                    <!-- Create Button -->
+                    <a href="/exercises/new" class="btn btn-primary" title="Create New exercises">
+                        <i class="bi bi-plus-circle"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Modal -->
+        <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importModalLabel">Import exercises from Excel</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Download the Excel template before uploading your file:</p>
+                        <a th:href="@{/exercises/download-template}" class="text-primary text-decoration-underline">
+                            Download Exercises Template
+                        </a>
+                        <form th:action="@{/exercises/import}" method="post" enctype="multipart/form-data" class="mt-3">
+                            <div class="mb-3">
+                                <label for="fileInput" class="form-label">Choose Excel File</label>
+                                <input type="file" name="file" id="fileInput" class="form-control" accept=".xlsx,.xls" required>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-upload"></i> Import
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main th:switch="${#lists.isEmpty(exercises.content)}">
+            <div th:case="false" class="card border-0 shadow-sm">
+                <div  id="tableView" class="table-responsive text-center scrollable-table">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                        <tr>
+                            <th><input type="checkbox" id="selectAll"></th>
+                            <th scope="col" class="fw-semibold text-center">#</th>
+                            <th scope="col" class="fw-semibold">Title</th>
+                            <th scope="col" class="fw-semibold">Language</th>
+                            <th scope="col" class="fw-semibold text-center">Difficulty</th>
+                            <th scope="col" class="fw-semibold text-center">Description</th>
+                            <th scope="col" class="fw-semibold text-center">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody id="exerciseTableBody">
+                        <tr th:each="exercise, iterStat : ${exercises.content}">
+                            <td><input type="checkbox" class="selectItem" th:value="${exercise.id}" /></td>
+                            <td th:text="${iterStat.count + (exercises.number * exercises.size)}" class="align-middle"></td>
+                            <td th:text="${exercise.title}" class="align-middle fw-medium text-left"></td>
+                            <td th:text="${exercise.language}" class="align-middle text-muted small"></td>
+                            <td>
+                        <span th:classappend="${
+                            exercise.level == 3 ? 'bg-danger' :
+                            (exercise.level == 2 ? 'bg-warning' : 'bg-success')}"
+                              class="badge"
+                              th:text="${
+                                exercise.level == 3 ? 'Hard' :
+                                (exercise.level == 2 ? 'Medium' : 'Easy')}">
+                        </span>
+                            </td>
+                            <td th:text="${exercise.description}" class="align-middle text-left"></td>
+                            <td class="text-center align-middle">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a th:href="@{/exercises/{id}(id=${exercise.id})}" class="btn btn-sm btn-outline-secondary" title="Detail" aria-label="Detail">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+                                    <a th:href="@{/exercises/edit/{id}(id=${exercise.id})}" class="btn btn-sm btn-outline-secondary" title="Edit" aria-label="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-secondary"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteModal"
+                                            title="Delete"
+                                            th:data-id="${exercise.id}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Card View -->
+                <div id="cardView" class="container" style="display: none;">
+                    <div class="row row-cols-1 row-cols-md-3 g-4">
+                        <div th:each="exercise, iterStat : ${exercises.content}"
+                             th:if="${iterStat.index < 6}"
+                             class="col">
+                            <div class="card h-100 shadow-sm">
+                                <!-- Header: Checkbox + Title -->
+                                <div class="card-header d-flex align-items-center gap-2" style="padding: 0.75rem;">
+                                    <input class="form-check-input selectItem" type="checkbox" th:value="${exercise.id}" style="margin: 0;">
+                                    <h5 class="card-title fw-bold mb-0 ps-4 flex-grow-1" th:text="${exercise.title}" style="flex-grow: 1;"></h5>
+                                </div>
+
+                                <!-- Card Body -->
+                                <div class="card-body">
+                                    <p class="card-text">
+                                        <strong>Language:</strong> <span th:text="${exercise.language}"></span>
+                                    </p>
+                                    <p>
+                                        <strong>Level:</strong>
+                                        <span th:classappend="${
+                            exercise.level == 3 ? 'badge bg-danger' :
+                            (exercise.level == 2 ? 'badge bg-warning' : 'badge bg-success')}"
+                                              th:text="${
+                                exercise.level == 3 ? 'Hard' :
+                                (exercise.level == 2 ? 'Medium' : 'Easy')}">
+                        </span>
+                                    </p>
+                                    <p class="card-text text-muted" th:text="${exercise.description}"></p>
+                                </div>
+
+                                <!-- Footer: Action Buttons -->
+                                <div class="card-footer d-flex justify-content-center gap-2">
+                                    <a th:href="@{/exercises/{id}(id=${exercise.id})}" class="btn btn-sm btn-outline-secondary" title="Detail">
+                                        <i class="fas fa-info-circle"></i>
+                                    </a>
+                                    <a th:href="@{/exercises/edit/{id}(id=${exercise.id})}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                            title="Delete" th:data-id="${exercise.id}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel">Confirm</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete this exercise?
+                            </div>
+                            <div class="modal-footer">
+                                <form id="deleteForm" th:action="@{/exercises/delete/__ID__}" method="post">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal cho Delete Selected -->
+                <div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteAllModalLabel">Confirm Deletion</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete <span id="deleteCount">0</span> selected exercise(s)?
+                            </div>
+                            <div class="modal-footer">
+                                <form id="deleteAllForm" th:action="@{/exercises/delete-all}" method="post">
+                                    <input type="hidden" name="ids" id="deleteAllIds">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between mt-3">
+                    <div class="d-flex align-items-center">
+                        <button id="deleteAll" class="btn btn-danger me-3" data-bs-toggle="modal" data-bs-target="#deleteAllModal">
+                            <i class="bi bi-trash"></i>
+                            <span>Delete Selected (<span id="selectedCount">0</span>)</span>
+                        </button>
+                        <span class="text-muted">Total Records: <strong th:text="${exercises.totalElements}">0</strong></span>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Exercise pagination">
+                        <ul class="pagination justify-content-end mb-0" id="pagination">
+                            <li class="page-item" th:classappend="${exercises.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/exercises(page=0, size=${exercises.size}, searchTerm=${searchTerm})}"
+                                   data-page="0" aria-label="First"><i class="bi bi-chevron-double-left"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${exercises.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/exercises(page=${exercises.number - 1}, size=${exercises.size}, searchTerm=${searchTerm})}"
+                                   th:data-page="${exercises.number - 1}" aria-label="Previous"><i class="bi bi-chevron-left"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${exercises.number == 0} ? 'active'">
+                                <a class="page-link" th:href="@{/exercises(page=0, size=${exercises.size}, searchTerm=${searchTerm})}"
+                                   data-page="0">1</a>
+                            </li>
+                            <li class="page-item disabled" th:if="${exercises.number > 2}">
+                                <span class="page-link">...</span>
+                            </li>
+                            <th:block th:each="i : ${#numbers.sequence(exercises.number - 1, exercises.number + 1)}"
+                                      th:if="${i > 0 and i < exercises.totalPages - 1}">
+                                <li class="page-item" th:classappend="${exercises.number == i} ? 'active'">
+                                    <a class="page-link" th:href="@{/exercises(page=${i}, size=${exercises.size}, searchTerm=${searchTerm})}"
+                                       th:data-page="${i}" th:text="${i + 1}"></a>
+                                </li>
+                            </th:block>
+                            <li class="page-item disabled" th:if="${exercises.number < exercises.totalPages - 3}">
+                                <span class="page-link">...</span>
+                            </li>
+                            <li class="page-item" th:classappend="${exercises.number == exercises.totalPages - 1} ? 'active'"
+                                th:if="${exercises.totalPages > 1}">
+                                <a class="page-link" th:href="@{/exercises(page=${exercises.totalPages - 1}, size=${exercises.size}, searchTerm=${searchTerm})}"
+                                   th:data-page="${exercises.totalPages - 1}" th:text="${exercises.totalPages}"></a>
+                            </li>
+                            <li class="page-item" th:classappend="${exercises.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/exercises(page=${exercises.number + 1}, size=${exercises.size}, searchTerm=${searchTerm})}"
+                                   th:data-page="${exercises.number + 1}" aria-label="Next"><i class="bi bi-chevron-right"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${exercises.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/exercises(page=${exercises.totalPages - 1}, size=${exercises.size}, searchTerm=${searchTerm})}"
+                                   th:data-page="${exercises.totalPages - 1}" aria-label="Last"><i class="bi bi-chevron-double-right"></i></a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:case="true" class="card border-0 shadow-sm p-4 text-center">
+                <div class="py-5">
+                    <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                    <h5>No exercises Found</h5>
+                    <p class="text-muted">There are no exercises available or matching your search criteria.</p>
+                    <a href="/exercises/new" class="btn btn-outline-primary mt-2">
+                        <i class="fas fa-plus me-1"></i> Create Exercise
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const itemCheckboxes = document.querySelectorAll('.selectItem');
+            const deleteAllButton = document.getElementById('deleteAll');
+            const deleteModal = document.getElementById('deleteModal');
+            const deleteAllModal = document.getElementById('deleteAllModal');
+            const selectedCount = document.getElementById('selectedCount');
+            const deleteCount = document.getElementById('deleteCount');
+            const deleteAllForm = document.getElementById('deleteAllForm');
+            const deleteAllIdsInput = document.getElementById('deleteAllIds');
+
+            function updateDeleteButton() {
+                const checkedCount = [...itemCheckboxes].filter(cb => cb.checked).length;
+                selectedCount.textContent = checkedCount;
+                deleteAllButton.disabled = checkedCount === 0; // Vô hiệu hóa nút nếu không có mục nào được chọn
+            }
+
+            // Xử lý checkbox "Select All"
+            selectAllCheckbox.addEventListener('change', () => {
+                itemCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+                updateDeleteButton();
+            });
+
+            // Cập nhật khi checkbox riêng lẻ thay đổi
+            itemCheckboxes.forEach(cb => {
+                cb.addEventListener('change', updateDeleteButton);
+            });
+
+            // Xử lý hiển thị modal "Delete Selected"
+            deleteAllModal.addEventListener('show.bs.modal', (event) => {
+                const selectedIds = [...itemCheckboxes]
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+
+                if (selectedIds.length === 0) {
+                    event.preventDefault(); // Ngăn modal hiển thị nếu không có mục nào được chọn
+                    alert('Please select at least one exercise to delete.');
+                    return;
+                }
+
+                deleteCount.textContent = selectedIds.length;
+                deleteAllIdsInput.value = JSON.stringify(selectedIds);
+            });
+
+            // Xử lý modal xóa từng exercise
+            deleteModal.addEventListener('show.bs.modal', (event) => {
+                const button = event.relatedTarget;
+                const id = button.getAttribute('data-id');
+                if (id) {
+                    const form = deleteModal.querySelector('#deleteForm');
+                    form.action = `/exercises/delete/${id}`;
+                }
+            });
+
+            // Xử lý submit form "Delete Selected"
+            deleteAllForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const selectedIds = JSON.parse(deleteAllIdsInput.value);
+
+                fetch('/exercises/delete-all', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ ids: selectedIds })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to delete exercises');
+                        }
+                        return response.text();
+                    })
+                    .then(() => {
+                        window.location.reload(); // Tải lại trang sau khi xóa thành công
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while deleting exercises: ' + error.message);
+                    });
+            });
+
+            // Xử lý khi modal "Delete All" bị đóng (bao gồm nút Cancel)
+            deleteAllModal.addEventListener('hidden.bs.modal', () => {
+                // Reset dữ liệu nếu cần
+                deleteCount.textContent = '0';
+                deleteAllIdsInput.value = '';
+            });
+
+            // Khởi tạo trạng thái ban đầu
+            updateDeleteButton();
+
+            // Khởi tạo tooltip của Bootstrap
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltipTriggerList.forEach(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+        });
+    </script>
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>-->
+    <script>
+        function toggleView() {
+            var tableView = document.getElementById("tableView");
+            var cardView = document.getElementById("cardView");
+            var switchBtn = document.getElementById("switchViewBtn");
+            var icon = switchBtn.querySelector("i");
+
+            if (tableView.style.display === "none") {
+                // Hiện Table View, Ẩn Card View
+                tableView.style.display = "table";
+                cardView.style.display = "none";
+                icon.classList.remove("bi-list");
+                icon.classList.add("bi-grid-3x3-gap");
+                switchBtn.setAttribute("title", "Switch to Card View");
+            } else {
+                // Hiện Card View, Ẩn Table View
+                tableView.style.display = "none";
+                cardView.style.display = "flex";
+                icon.classList.remove("bi-grid-3x3-gap");
+                icon.classList.add("bi-list");
+                switchBtn.setAttribute("title", "Switch to Table View");
+            }
+        }
+
+    </script>
+    <script>
+        function submitSearch() {
+            document.getElementById("searchForm").submit();
+        }
+    </script>
+</div>
+
+

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invite Candidates for ASM</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .card {
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+        .btn-import {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-import:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Invite Candidates for ASM</h1>
+
+    <!-- Send Invitations Section -->
+    <div class="card shadow">
+        <h3 class="card-header">Send Invitations</h3>
+        <div class="card-body">
+            <form th:action="@{/send-invitations}" method="post" enctype="multipart/form-data">
+                <!-- Emails Textarea -->
+                <div class="mb-3">
+                    <label for="emails" class="form-label"><span>Emails:</span></label>
+                    <textarea class="form-control" id="emails" name="emails" rows="3" placeholder="Enter email addresses separated by commas..."></textarea>
+                    <span>Enter email addresses separated by commas.</span>
+                </div>
+
+                <!-- Import from Excel -->
+                <div class="mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span>Import from Excel:</span>
+                        <input type="file" class="form-control w-auto" id="excelFile" name="excelFile" accept=".xlsx, .xls">
+                        <a href="/download-excel-template" class="btn btn-primary">Download Form Excel</a>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-outline-success" formaction="/send-invitations">
+                        <i class="bi bi-envelope-plus me-2"></i>Send Invitations
+                    </button>
+                    <button type="submit" class="btn btn-outline-primary" formaction="/import-candidates">
+                        <i class="bi bi-upload me-2"></i>Import
+                    </button>
+                    <a href="/assessments" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Select Candidates Section -->
+    <div class="card shadow">
+        <h3 class="card-header">Select Candidates</h3>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="search" class="form-label"><span>Search Candidates:</span></label>
+                <input type="text" class="form-control" id="search" name="search" placeholder="Search by name or email...">
+            </div>
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th style="text-align: center;">
+                        <label for="selectAll">Select</label>
+                        <input type="checkbox" id="selectAll" />
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- Thymeleaf loop to display candidates -->
+                <tr th:each="candidate : ${candidates}">
+                    <td th:text="${candidate.name}"></td>
+                    <td th:text="${candidate.email}"></td>
+                    <td class="text-center">
+                        <input type="checkbox" class="row-checkbox" th:value="${candidate.id}" name="selectedCandidates">
+                    </td>
+                </tr>
+                <!-- Fallback if no candidates -->
+                <tr th:if="${candidates == null or candidates.isEmpty()}">
+                    <td colspan="3" class="text-center">No candidates found.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS (for interactivity) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('selectAll').addEventListener('change', function () {
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+</script>
+
+</body>
+</html>

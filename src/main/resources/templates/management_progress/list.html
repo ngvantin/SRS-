@@ -1,0 +1,444 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="container py-2">
+        <!-- Header -->
+        <div id="userProgressHeader" class="col-12 text-center mb-4">
+            <h1 class="fw-bold" id="progressTitle">User Progress</h1>
+        </div>
+
+        <!-- Search and Actions Bar -->
+        <div class="card-body mb-3">
+            <div class="row align-items-center gy-3">
+                <!-- Search Form -->
+                <div class="col-md-6 d-flex">
+                    <form th:action="@{/progress}" method="get" class="input-group me-2">
+                        <input type="text" class="form-control" name="searchTerm" th:value="${searchTerm}"
+                               placeholder="Search by name or email" aria-label="User search">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="Search" title="Search">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2"
+                            onclick="window.location.href='/progress'"
+                            title="Reload" aria-label="Reload progress">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"
+                            title="Filter" aria-label="Filter data">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-md-6 d-flex justify-content-end gap-2 flex-wrap">
+                    <!-- Export Button -->
+                    <a th:href="@{/progress/export}" class="btn btn-outline-secondary" title="Export to Excel">
+                        <i class="bi bi-file-earmark-excel"></i>
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Modal -->
+        <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="filterModalLabel">Filter Data</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="filterForm">
+                            <div class="row g-3">
+                                <!-- Username Filter -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Username</label>
+                                    <select class="form-select" id="usernameFilter">
+                                        <option value="">All</option>
+                                        <option th:each="user : ${users}" th:value="${user.username}" th:text="${user.username}"></option>
+                                    </select>
+                                </div>
+                                <!-- Email Filter -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Email</label>
+                                    <select class="form-select" id="emailFilter">
+                                        <option value="">All</option>
+                                        <option th:each="user : ${users}" th:value="${user.email}" th:text="${user.email}"></option>
+                                    </select>
+                                </div>
+                                <!-- Total Courses Filter -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Total Courses</label>
+                                    <select class="form-select" id="totalCoursesFilter">
+                                        <option value="">All</option>
+                                        <option value="0-5">0-5</option>
+                                        <option value="6-10">6-10</option>
+                                        <option value="11-20">11-20</option>
+                                        <option value="20+">20+</option>
+                                    </select>
+                                </div>
+                                <!-- Completion Rate Filter -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Completion Rate</label>
+                                    <select class="form-select" id="completionRateFilter">
+                                        <option value="">All</option>
+                                        <option value="0-25">0-25%</option>
+                                        <option value="26-50">26-50%</option>
+                                        <option value="51-75">51-75%</option>
+                                        <option value="76-100">76-100%</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetFilters()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs mb-4" id="progressTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="user-list-tab" data-bs-toggle="tab"
+                        data-bs-target="#user-list" type="button" role="tab">
+                    All User Progress
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="my-progress-tab" href="/progress/my-progress">
+                    My Progress
+                </a>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="progressTabContent">
+            <!-- User List Tab -->
+            <div class="tab-pane fade show active" id="user-list" role="tabpanel">
+                <!-- Main Content -->
+                <main th:switch="${#lists.isEmpty(users)}">
+                    <div th:case="false" class="card border-0 shadow-sm">
+                        <!-- Table View -->
+                        <div class="table-responsive text-center">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                <tr>
+                                    <th scope="col" class="fw-semibold text-center">#</th>
+                                    <th scope="col" class="fw-semibold">Username</th>
+                                    <th scope="col" class="fw-semibold">Email</th>
+                                    <th scope="col" class="fw-semibold text-center">Total Courses</th>
+                                    <th scope="col" class="fw-semibold text-center">Completed Courses</th>
+                                    <th scope="col" class="fw-semibold text-center">Completion Rate</th>
+                                    <th scope="col" class="fw-semibold text-center">Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="user, iterStat : ${users}">
+                                    <td th:text="${iterStat.count + (currentPage * size)}" class="align-middle"></td>
+                                    <td th:text="${user.username}" class="align-middle fw-medium" style="text-align: left;"></td>
+                                    <td th:text="${user.email}" class="align-middle text-muted small" style="text-align: left;"></td>
+                                    <td th:text="${totalCoursesMap[user.id]}" class="align-middle text-center"></td>
+                                    <td th:text="${completedCoursesMap[user.id]}" class="align-middle text-center"></td>
+                                    <td class="align-middle text-center">
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar"
+                                                 th:style="'width: ' + ${totalCoursesMap[user.id] > 0 ? (completedCoursesMap[user.id] * 100 / totalCoursesMap[user.id]) : 0} + '%'"
+                                                 th:classappend="${completedCoursesMap[user.id] == totalCoursesMap[user.id] ? 'bg-success' : (completedCoursesMap[user.id] > 0 ? 'bg-primary' : 'bg-secondary')}"
+                                                 th:text="${totalCoursesMap[user.id] > 0 ? #numbers.formatDecimal(completedCoursesMap[user.id] * 100 / totalCoursesMap[user.id], 0, 1) + '%' : '0%'}">
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <a th:href="@{/progress/{userId}(userId=${user.id})}" class="btn btn-sm btn-outline-secondary" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="d-flex align-items-center justify-content-between mt-3">
+                            <span class="text-muted">Total Records:
+                                <strong th:text="${users != null ? users.size() : 0}"></strong>
+                                of <span th:text="${totalRecords ?: (totalPages * size)}"></span>
+                            </span>
+                            <nav aria-label="Progress pagination">
+                                <ul class="pagination justify-content-end mb-0">
+                                    <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                                        <a class="page-link" th:href="@{/progress(page=0, size=${size}, searchTerm=${searchTerm})}" aria-label="First"><i class="bi bi-chevron-double-left"></i></a>
+                                    </li>
+                                    <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                                        <a class="page-link" th:href="@{/progress(page=${currentPage - 1}, size=${size}, searchTerm=${searchTerm})}" aria-label="Previous"><i class="bi bi-chevron-left"></i></a>
+                                    </li>
+                                    <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i ? 'active' : ''}">
+                                        <a class="page-link" th:href="@{/progress(page=${i}, size=${size}, searchTerm=${searchTerm})}" th:text="${i + 1}"></a>
+                                    </li>
+                                    <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                                        <a class="page-link" th:href="@{/progress(page=${currentPage + 1}, size=${size}, searchTerm=${searchTerm})}" aria-label="Next"><i class="bi bi-chevron-right"></i></a>
+                                    </li>
+                                    <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                                        <a class="page-link" th:href="@{/progress(page=${totalPages - 1}, size=${size}, searchTerm=${searchTerm})}" aria-label="Last"><i class="bi bi-chevron-double-right"></i></a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div th:case="true" class="card border-0 shadow-sm p-4 text-center">
+                        <div class="py-5">
+                            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                            <h5>No Users Found</h5>
+                            <p class="text-muted">There are no users available or matching your search criteria.</p>
+                        </div>
+                    </div>
+                </main>
+            </div>
+
+            <!-- My Progress Tab -->
+            <div class="tab-pane fade" id="my-progress" role="tabpanel">
+                <div class="card mt-3" th:if="${user != null}">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>ID:</strong> <span th:text="${user.id}"></span></p>
+                                <p><strong>Username:</strong> <span th:text="${user.username}"></span></p>
+                                <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Total Courses:</strong> <span th:text="${totalCourses}"></span></p>
+                                <p><strong>Completed Courses:</strong> <span th:text="${completedCourses}"></span></p>
+                                <p><strong>Completion Rate:</strong>
+                                    <span th:text="${totalCourses > 0 ? #numbers.formatDecimal(completedCourses * 100 / totalCourses, 0, 1) + '%' : '0%'}"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div th:unless="${user != null}">
+                    <p class="text-center text-danger">User data not available.</p>
+                </div>
+
+                <!-- Table View -->
+                <div th:if="${userCourses != null}">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                            <tr>
+                                <th scope="col" class="fw-semibold text-center">#</th>
+                                <th scope="col" class="fw-semibold">Course ID</th>
+                                <th scope="col" class="fw-semibold">Progress</th>
+                                <th scope="col" class="fw-semibold">Status</th>
+                                <th scope="col" class="fw-semibold text-center">Completed Lessons</th>
+                                <th scope="col" class="fw-semibold">Last Updated</th>
+                                <th scope="col" class="fw-semibold text-center">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="course, iterStat : ${userCourses}">
+                                <td th:text="${iterStat.count + (currentPage * size)}" class="align-middle"></td>
+                                <td th:text="${course.courseId}" class="align-middle fw-medium"></td>
+                                <td class="align-middle">
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar"
+                                             th:style="'width: ' + ${course.progressPercent} + '%'"
+                                             th:classappend="${course.progressPercent == 100 ? 'bg-success' : (course.progressPercent > 0 ? 'bg-primary' : 'bg-secondary')}"
+                                             th:text="${course.progressPercent + '%'}">
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${course.status}" class="align-middle"></td>
+                                <td th:text="'-'" class="align-middle text-center"></td> <!-- Temporarily hardcoded -->
+                                <td th:text="${#temporals.format(course.lastUpdated, 'dd/MM/yyyy HH:mm')}" class="align-middle text-muted small"></td>
+                                <td class="text-center align-middle">
+                                    <a th:href="@{/progress/{userId}/course/{courseId}/materials(userId=${user.id},courseId=${course.courseId})}"
+                                       class="btn btn-sm btn-outline-secondary" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div th:unless="${userCourses != null}">
+                    <p class="text-center text-danger">No courses available.</p>
+                </div>
+
+                <!-- Pagination for My Progress -->
+                <div class="d-flex align-items-center justify-content-between mt-3">
+                    <span class="text-muted">Total Records: <strong th:text="${totalPages * size > totalCourses ? totalCourses : totalPages * size}"></strong></span>
+                    <nav aria-label="My Progress pagination">
+                        <ul class="pagination justify-content-end mb-0">
+                            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/progress/my-progress(page=0, size=${size})}" aria-label="First"><i class="bi bi-chevron-double-left"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/progress/my-progress(page=${currentPage - 1}, size=${size})}" aria-label="Previous"><i class="bi bi-chevron-left"></i></a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i ? 'active' : ''}">
+                                <a class="page-link" th:href="@{/progress/my-progress(page=${i}, size=${size})}" th:text="${i + 1}"></a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/progress/my-progress(page=${currentPage + 1}, size=${size})}" aria-label="Next"><i class="bi bi-chevron-right"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/progress/my-progress(page=${totalPages - 1}, size=${size})}" aria-label="Last"><i class="bi bi-chevron-double-right"></i></a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>-->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressTitle = document.getElementById('progressTitle');
+            const userProgressHeader = document.getElementById('userProgressHeader');
+            const url = window.location.pathname;
+
+            // Logic to activate tab and update title based on URL
+            if (url.startsWith('/progress/my-progress')) {
+                document.getElementById('user-list-tab').classList.remove('active');
+                document.getElementById('my-progress-tab').classList.add('active');
+                document.getElementById('user-list').classList.remove('show', 'active');
+                document.getElementById('my-progress').classList.add('show', 'active');
+                if (progressTitle) {
+                    progressTitle.textContent = 'My Progress'; // Change title to "My Progress"
+                }
+                if (userProgressHeader) {
+                    userProgressHeader.style.display = 'block'; // Show header in My Progress
+                }
+            } else {
+                document.getElementById('user-list-tab').classList.add('active');
+                document.getElementById('my-progress-tab').classList.remove('active');
+                document.getElementById('user-list').classList.add('show', 'active');
+                document.getElementById('my-progress').classList.remove('show', 'active');
+                if (progressTitle) {
+                    progressTitle.textContent = 'User Progress'; // Set title to "User Progress"
+                }
+                if (userProgressHeader) {
+                    userProgressHeader.style.display = 'block'; // Show header in User Progress List
+                }
+            }
+
+            // Tab click events
+            const userListTab = document.getElementById('user-list-tab');
+            if (userListTab) {
+                userListTab.addEventListener('click', function() {
+                    window.location.href = "/progress";
+                    if (progressTitle) {
+                        progressTitle.textContent = 'User Progress'; // Change title back to "User Progress"
+                    }
+                    if (userProgressHeader) {
+                        userProgressHeader.style.display = 'block';
+                    }
+                });
+            }
+
+            const myProgressTab = document.getElementById('my-progress-tab');
+            if (myProgressTab) {
+                myProgressTab.addEventListener('click', function(e) {
+                    if (progressTitle) {
+                        progressTitle.textContent = 'My Progress'; // Change title to "My Progress"
+                    }
+                    if (userProgressHeader) {
+                        userProgressHeader.style.display = 'block'; // Show header
+                    }
+                });
+            }
+        });
+
+        function applyFilters() {
+            const username = document.getElementById('usernameFilter').value;
+            const email = document.getElementById('emailFilter').value;
+            const totalCourses = document.getElementById('totalCoursesFilter').value;
+            const completionRate = document.getElementById('completionRateFilter').value;
+            
+            // Filter table rows
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const rowUsername = row.querySelector('td:nth-child(2)').textContent;
+                const rowEmail = row.querySelector('td:nth-child(3)').textContent;
+                const rowTotalCourses = parseInt(row.querySelector('td:nth-child(4)').textContent);
+                const rowCompletionRate = parseInt(row.querySelector('.progress-bar').style.width);
+                
+                let showRow = true;
+                
+                if (username && rowUsername !== username) showRow = false;
+                if (email && rowEmail !== email) showRow = false;
+                if (totalCourses) {
+                    const [min, max] = totalCourses.split('-').map(Number);
+                    if (max) {
+                        if (rowTotalCourses < min || rowTotalCourses > max) showRow = false;
+                    } else {
+                        if (rowTotalCourses < min) showRow = false;
+                    }
+                }
+                if (completionRate) {
+                    const [min, max] = completionRate.split('-').map(Number);
+                    if (rowCompletionRate < min || rowCompletionRate > max) showRow = false;
+                }
+                
+                row.style.display = showRow ? '' : 'none';
+            });
+            
+            // Close modal properly
+            const modal = document.getElementById('filterModal');
+            const modalInstance = bootstrap.Modal.getInstance(modal);
+            if (modalInstance) {
+                modalInstance.hide();
+            } else {
+                modal.classList.remove('show');
+                document.body.classList.remove('modal-open');
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
+                }
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('filterForm').reset();
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => row.style.display = '');
+            
+            // Close modal properly
+            const modal = document.getElementById('filterModal');
+            const modalInstance = bootstrap.Modal.getInstance(modal);
+            if (modalInstance) {
+                modalInstance.hide();
+            } else {
+                modal.classList.remove('show');
+                document.body.classList.remove('modal-open');
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
+                }
+            }
+        }
+
+        // Add event listener for modal hidden event
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterModal = document.getElementById('filterModal');
+            if (filterModal) {
+                filterModal.addEventListener('hidden.bs.modal', function () {
+                    document.body.classList.remove('modal-open');
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                });
+            }
+        });
+    </script>
+</div>

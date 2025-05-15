@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Tab navigation -->
+<ul class="nav nav-tabs mb-3" th:fragment="tab-navigation-user">
+
+    <!-- Course Feedbacks: Admin & Student -->
+    <li class="nav-item" th:if="${currentRole == 'Admin' or currentRole == 'Student'}">
+        <a class="nav-link" th:classappend="${currentUrl == '/feedbacks/courses/user/list' ? 'active' : ''}" href="/feedbacks/courses/user/list">Course Feedbacks</a>
+    </li>
+
+    <!-- Instructor Feedbacks: Admin & Instructor -->
+    <li class="nav-item" th:if="${currentRole == 'Admin' or currentRole == 'Instructor' or currentRole == 'Student'}">
+        <a class="nav-link" th:classappend="${currentUrl == '/feedbacks/instructor/user/list' ? 'active' : ''}" href="/feedbacks/instructor/user/list">Instructor Feedbacks</a>
+    </li>
+
+    <!-- Instructor Feedbacks: Admin & Student -->
+    <li class="nav-item" th:if="${currentRole == 'Admin'  or currentRole == 'Student'}">
+        <a class="nav-link" th:classappend="${currentUrl == '/feedbacks/admin/user/list' ? 'active' : ''}" href="/feedbacks/admin/user/list">Admin Feedbacks</a>
+    </li>
+
+<!--    &lt;!&ndash; Assessment Feedbacks: Admin only &ndash;&gt;-->
+<!--    <li class="nav-item" th:if="${currentRole == 'Admin'}">-->
+<!--        <a class="nav-link" th:classappend="${currentUrl == '/assessment_feedbacks/admin' ? 'active' : ''}" href="/assessment_feedbacks/admin">Assessment Feedbacks</a>-->
+<!--    </li>-->
+
+<!--    &lt;!&ndash; Analysis: Admin & Instructor &ndash;&gt;-->
+<!--    <li class="nav-item" th:if="${currentRole == 'Admin' or currentRole == 'Instructor'}">-->
+<!--        <a class="nav-link" th:classappend="${currentUrl == '/feedbacks/analysis' ? 'active' : ''}" href="/feedbacks/analysis">Analysis</a>-->
+<!--    </li>-->
+
+<!--    &lt;!&ndash; Report: Admin only &ndash;&gt;-->
+<!--    <li class="nav-item" th:if="${currentRole == 'Admin'}">-->
+<!--        <a class="nav-link" th:classappend="${currentUrl == '/feedbacks/report' ? 'active' : ''}" href="/feedbacks/report">Report</a>-->
+<!--    </li>-->
+
+</ul>
+
+</body>
+</html>

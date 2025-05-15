@@ -1,0 +1,83 @@
+<div class="px-5" th:fragment="content">
+    <div class="container mt-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <!-- Header -->
+            <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+                <i class="bi bi-pencil-square me-2 fs-4"></i>
+                <h1 class="mb-0 fw-bold">Edit Post</h1>
+            </div>
+
+            <div class="card-body">
+                <!-- Error Message -->
+                <div th:if="${error}" class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                </div>
+
+                <form th:action="@{/forums/edit/{id}(id=${post.id})}" method="post" th:object="${post}" enctype="multipart/form-data">
+                    <input type="hidden" name="redirect" th:value="${redirect}">
+
+                    <!-- Title & Course -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-journal-bookmark me-2"></i>Course
+                            </label>
+                            <input type="text" class="form-control border-0 shadow-sm rounded-3" th:value="${post.course.name}" readonly>
+                            <input type="hidden" name="course.id" th:value="${post.course.id}">
+                        </div>
+                        <div class="col-md-8">
+                            <label for="title" class="form-label fw-semibold">
+                                <i class="bi bi-type me-2"></i>Title
+                            </label>
+                            <input type="text" class="form-control border-0 shadow-sm rounded-3" id="title" th:field="*{title}" required>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="mb-4">
+                        <label for="content" class="form-label fw-semibold">
+                            <i class="bi bi-chat-square-text me-2"></i>Content
+                        </label>
+                        <textarea class="form-control border-0 shadow-sm rounded-3" id="content" th:field="*{content}" rows="5" required></textarea>
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div class="mb-4">
+                        <!-- Hiển thị ảnh hiện tại nếu có -->
+                        <div th:if="${post.imageUrl}">
+                            <p class="mb-1">Current Image:</p>
+                            <img th:src="${post.imageUrl}" class="img-fluid rounded border p-1" style="max-height: 150px;">
+                        </div>
+
+                        <label for="imageUpload" class="form-label fw-semibold mt-2">
+                            <i class="bi bi-image me-2"></i>Upload Image
+                        </label>
+                        <input type="file" class="form-control border-0 shadow-sm rounded-3" id="imageUpload" name="image" accept="image/*">
+
+                        <!-- Image Preview -->
+                        <div id="imagePreviewContainer" class="mt-2 d-none position-relative">
+                            <img id="imagePreview" class="img-fluid rounded border p-1" style="max-height: 150px;">
+                            <button type="button" id="removeImage"
+                                    class="btn btn-sm btn-danger position-absolute d-flex align-items-center justify-content-center rounded-circle"
+                                    style="top: 5px; right: 5px; width: 24px; height: 24px; padding: 0;">
+                                <i class="fas fa-times" style="font-size: 12px;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary px-4 me-3 shadow-lg rounded-3">
+                            <i class="bi bi-save me-2"></i>Save
+                        </button>
+                        <a th:href="${redirect}" class="btn btn-outline-secondary px-4 shadow-lg rounded-3">
+                            <i class="bi bi-arrow-left me-2"></i>Back to list
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/js/forums/update.js}"></script>
+</div>

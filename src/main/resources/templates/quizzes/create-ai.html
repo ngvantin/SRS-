@@ -1,0 +1,170 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="container mt-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+                <i class="bi bi-question-circle me-2 fs-4"></i>
+                <h1>Create Quiz Using AI</h1>
+            </div>
+            <div class="card-body p-4">
+                <form th:action="@{/quizzes/add-ai-quiz}" method="post" class="needs-validation" novalidate>
+                    <!-- Error message display -->
+                    <div th:if="${error}" class="alert alert-danger mb-3 shadow-sm">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-circle me-2"></i>
+                            <p th:text="${error}" class="mb-0"></p>
+                        </div>
+                    </div>
+
+                    <!-- Course Selection -->
+                    <div class="mb-3">
+                        <label for="courseId" class="form-label fw-bold">
+                            <i class="bi bi-book me-1"></i>Select Course</label>
+                        <select class="form-select" id="courseId" name="courseId" required>
+                            <option value="">-- Select Course --</option>
+                            <option th:each="course : ${courses}" th:value="${course.id}" th:text="${course.name}"></option>
+                        </select>
+                        <div class="invalid-feedback">Please select a course.</div>
+                    </div>
+
+                    <!-- Attempts Allowed -->
+                    <div class="mb-3">
+                        <label for="attemptsAllowed" class="form-label fw-bold">
+                            <i class="bi bi-arrow-repeat me-1"></i>Attempts Allowed</label>
+                        <input type="number" class="form-control" id="attemptsAllowed" name="attemptsAllowed" min="1" value="1" required>
+                        <div class="invalid-feedback">Attempts Allowed must be at least 1.</div>
+                    </div>
+
+                    <!-- Total Points -->
+                    <div class="mb-3">
+                        <label for="totalPoints" class="form-label fw-bold">
+                            <i class="bi bi-star me-1"></i>Total Points</label>
+                        <input type="number" class="form-control" id="totalPoints" name="totalPoints" step="0.1" min="0" value="100" required>
+                        <div class="invalid-feedback">Total Points must be at least 0.</div>
+                    </div>
+
+                    <!-- Time Limit -->
+                    <div class="mb-3">
+                        <label for="timeLimit" class="form-label fw-bold">
+                            <i class="bi bi-clock me-1"></i>Time Limit (minutes)</label>
+                        <input type="number" class="form-control" id="timeLimit" name="timeLimit" min="1" value="60" required>
+                        <div class="invalid-feedback">Time Limit must be at least 1 minute.</div>
+                    </div>
+
+                    <!-- Start Time -->
+                    <div class="mb-3">
+                        <label for="start" class="form-label fw-bold">
+                            <i class="bi bi-calendar-check me-1"></i>Start Time</label>
+                        <input type="datetime-local" class="form-control" id="start" name="start" required onfocus="this.showPicker()">
+                        <div class="invalid-feedback">Start Time cannot be blank.</div>
+                    </div>
+
+                    <!-- End Time -->
+                    <div class="mb-3">
+                        <label for="endTime" class="form-label fw-bold">
+                            <i class="bi bi-calendar-x me-1"></i>End Time</label>
+                        <input type="datetime-local" class="form-control" id="endTime" name="endTime" required onfocus="this.showPicker()">
+                        <div class="invalid-feedback">End Time cannot be blank.</div>
+                    </div>
+
+                    <!-- Is in Bank -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-bank me-1"></i>Is in Bank?</label>
+                        <select class="form-select" name="isInBank" required>
+                            <option value="">-- Select Option --</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                        <div class="invalid-feedback">Please select an option.</div>
+                    </div>
+
+                    <!-- Number of Questions -->
+                    <div class="mb-3">
+                        <label for="numberOfQuestions" class="form-label fw-bold">
+                            <i class="bi bi-list-ol me-1"></i>Number of Questions</label>
+                        <input type="number" class="form-control" id="numberOfQuestions" name="numberOfQuestions" min="1" value="1" required>
+                        <div class="invalid-feedback">Number of Questions must be at least 1.</div>
+                    </div>
+
+                    <!-- Question Type -->
+                    <div class="mb-3">
+                        <label for="questionType" class="form-label fw-bold">
+                            <i class="bi bi-question-circle me-1"></i>Question Type</label>
+                        <select class="form-select" id="questionType" name="questionType" required>
+                            <option value="">-- Select Type --</option>
+                            <option value="MULTIPLE CHOICE">Multiple Choice</option>
+                            <option value="TRUE FALSE">True/False</option>
+                            <option value="FILL IN THE BLANK">Fill in the Blank</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a question type.</div>
+                    </div>
+
+                    <!-- Submit and Cancel Buttons -->
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg me-3">
+                            <i class="bi bi-save me-1"></i>Generate Quiz</button>
+                        <a href="/quizzes" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-arrow-left me-1"></i>Back to List</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Validate End Time based on Start Time, Attempts, and Time Limit
+            const validateEndTime = () => {
+                const startInput = document.getElementById('start');
+                const endInput = document.getElementById('endTime');
+                const attemptsInput = document.getElementById('attemptsAllowed');
+                const timeLimitInput = document.getElementById('timeLimit');
+                const errorMsg = document.getElementById('dateError');
+
+                const startTime = new Date(startInput.value);
+                const endTime = new Date(endInput.value);
+                const attempts = parseInt(attemptsInput.value) || 0;
+                const timeLimit = parseInt(timeLimitInput.value) || 0;
+
+                if (startTime && endTime && attempts && timeLimit) {
+                    const minEndTime = new Date(startTime.getTime() + (attempts * timeLimit * 60000));
+                    if (startTime >= endTime || endTime < minEndTime) {
+                        errorMsg.style.display = 'block';
+                        endInput.classList.add('is-invalid');
+                        return false;
+                    } else {
+                        errorMsg.style.display = 'none';
+                        endInput.classList.remove('is-invalid');
+                        return true;
+                    }
+                }
+                return true; // Default to true if inputs are incomplete
+            };
+
+            // Attach validation to relevant inputs
+            ['start', 'endTime', 'attemptsAllowed', 'timeLimit'].forEach(id => {
+                document.getElementById(id).addEventListener('change', validateEndTime);
+            });
+
+            // Form validation with Bootstrap
+            const form = document.querySelector('.needs-validation');
+            const submitBtn = document.getElementById('submitBtn');
+
+            submitBtn.addEventListener('click', (event) => {
+                if (!form.checkValidity() || !validateEndTime()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+
+            form.addEventListener('submit', (event) => {
+                if (!form.checkValidity() || !validateEndTime()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+        });
+    </script>
+</div>

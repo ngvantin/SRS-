@@ -1,0 +1,86 @@
+<div class="px-5" th:fragment="content">
+  <div class="container mt4">
+    <h2 class="text-center">Add questions</h2>
+
+    <form th:action="@{/questions/saveall/1}" method="post">
+      <div id="questionsContainer"></div>
+
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-primary" id="addQuestionBtn">Add Question</button>
+        <button type="submit" class="btn btn-success">Save</button>
+        <a th:href="@{/quiz/edit/{id}(id=${quizId})}" class="btn btn-secondary">Back to Quiz Edit</a>
+      </div>
+    </form>
+
+    <script th:inline="javascript">
+      const addQuestionBtn = document.getElementById('addQuestionBtn');
+      const questionsContainer = document.getElementById('questionsContainer');
+      let questionIndex = 0;
+      const types = /*[[${types}]]*/ [];
+0
+      addQuestionBtn.addEventListener('click', () => {
+        const questionCard = `
+      <div class="card shadow-sm mt-4 question-card">
+        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Close" onclick="removeCard(this)"></button>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Question Text</label>
+            <input type="text" name="questions[${questionIndex}].text" class="form-control" placeholder="Enter question" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Question Type</label>
+            <select name="questions[${questionIndex}].type" class="form-select" required>
+              ${types.map(type => `<option value="${type}">${type}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Points</label>
+            <input type="number" name="questions[${questionIndex}].points" class="form-control" placeholder="Enter points" required>
+          </div>
+          <div class="answerOptionContainer"></div>
+          <button type="button" class="btn btn-secondary mt-2 addAnswerOptionBtn">Add Answer Option</button>
+        </div>
+      </div>
+    `;
+        questionsContainer.insertAdjacentHTML('beforeend', questionCard);
+        questionIndex++;
+      });
+
+      function removeCard(button) {
+        button.closest('.card').remove();
+      }
+
+      questionsContainer.addEventListener('click', function (event) {
+        if (event.target.classList.contains('addAnswerOptionBtn')) {
+          const questionCard = event.target.closest('.question-card');
+          const answerOptionContainer = questionCard.querySelector('.answerOptionContainer');
+
+          const questionInput = questionCard.querySelector('input[name$=".text"]');
+          if (!questionInput) return; // safety check
+
+          const qIndex = questionInput.name.match(/questions\[(\d+)\]/)[1];
+          const answerIndex = answerOptionContainer.querySelectorAll('.answer-group').length;
+
+          const answerCard = `
+        <div class="input-group mb-2 answer-group">
+          <div class="input-group-text">
+            <input class="form-check-input mt-0" type="checkbox" name="questions[${qIndex}].answers[${answerIndex}].isCorrect">
+          </div>
+          <input type="text" name="questions[${qIndex}].answers[${answerIndex}].text" class="form-control" placeholder="Answer text" required>
+          <button type="button" class="btn btn-outline-danger removeOptionBtn">
+            &times;
+          </button>
+        </div>
+      `;
+          answerOptionContainer.insertAdjacentHTML('beforeend', answerCard);
+        }
+
+        if (event.target.closest('.removeOptionBtn')) {
+          event.target.closest('.input-group').remove();
+        }
+      });
+    </script>
+  </div>
+</div>

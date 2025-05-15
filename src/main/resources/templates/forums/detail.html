@@ -1,0 +1,196 @@
+<div class="container py-4" th:fragment="content">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <!-- Main Post with enhanced styling -->
+            <div class="card border-0 shadow mb-4 overflow-hidden">
+                <!-- Colored top border for visual distinction -->
+                <div class="bg-primary" style="height: 4px;"></div>
+
+                <!-- Post Header with improved styling -->
+                <div class="card-header bg-white border-0 pt-4 pb-0 px-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center">
+                            <!-- Restored rounded avatar -->
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user text-primary"></i>
+                            </div>
+                            <h5 class="mb-0 fw-bold text-primary" th:text="${post.user.username}"></h5>
+                        </div>
+                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">
+                            <i class="fas fa-book me-1"></i>
+                            <span th:text="${post.course.name}"></span>
+                        </span>
+                    </div>
+
+                    <h3 class="fw-bold text-dark mb-3 mt-3" th:text="${post.title}"></h3>
+
+                    <div class="d-flex text-muted small mb-3">
+                        <div class="me-3">
+                            <i class="fas fa-calendar-alt me-1"></i> Posted:
+                            <span th:text="${#temporals.format(post.createdAt, 'dd MMM yyyy, HH:mm')}"></span>
+                        </div>
+                        <div>
+                            <i class="fas fa-clock me-1"></i> Updated:
+                            <span th:text="${#temporals.format(post.updatedAt, 'dd MMM yyyy, HH:mm')}"></span>
+                        </div>
+                    </div>
+                    <hr class="my-0">
+                </div>
+
+                <!-- Post Content with improved styling -->
+                <div class="card-body p-4 bg-white">
+                    <!-- Content with subtle background -->
+                    <pre class="fs-6 text-dark convert-links mb-4 p-3 bg-light rounded"
+                         style="font-family: 'Arial', sans-serif;"
+                         th:text="${post.content}"></pre>
+
+                    <div class="text-center mb-2 border p-2 rounded" th:if="${post.imageUrl}">
+                        <img th:src="${post.imageUrl}" class="img-fluid rounded" style="max-height: 500px;" alt="Post Image">
+                    </div>
+                </div>
+
+                <!-- Post Footer -->
+                <div class="card-footer bg-white border-top py-3 px-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <!-- Like Button -->
+                            <form th:action="@{/reactions/{postId}/LIKE(postId=${post.id})}" method="post" class="me-2">
+                                <button type="submit" class="btn btn-sm px-3 py-1 rounded-pill shadow-sm"
+                                        th:classappend="${hasLiked ? 'btn-primary' : 'btn-outline-primary'}">
+                                    <i class="fas fa-thumbs-up me-1"></i> <span>[[${likeCount}]]</span>
+                                </button>
+                            </form>
+
+                            <!-- Dislike Button -->
+                            <form th:action="@{/reactions/{postId}/DISLIKE(postId=${post.id})}" method="post" class="me-3">
+                                <button type="submit" class="btn btn-sm px-3 py-1 rounded-pill shadow-sm"
+                                        th:classappend="${hasDisliked ? 'btn-danger' : 'btn-outline-danger'}">
+                                    <i class="fas fa-thumbs-down me-1"></i> <span>[[${dislikeCount}]]</span>
+                                </button>
+                            </form>
+
+                            <!-- Comment Count -->
+                            <span class="badge bg-light text-secondary rounded-pill px-3 py-2 border">
+                                <i class="bi bi-chat-dots-fill me-1"></i>
+                                <span th:text="${commentCount}">0</span> Comments
+                            </span>
+                        </div>
+
+                        <a href="#" id="backButton" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments Section with improved styling -->
+            <div class="card border-0 shadow mb-4">
+                <!-- Colored top border for visual distinction -->
+                <div class="bg-primary" style="height: 4px;"></div>
+
+                <div class="card-header bg-white border-bottom py-3 px-4">
+                    <h5 class="mb-0 fw-bold d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="fas fa-comments text-primary me-2"></i>Comments (<span th:text="${commentCount}">0</span>)
+                        </span>
+                        <a href="#add-comment" class="btn btn-sm btn-outline-primary rounded-pill shadow-sm">
+                            <i class="fas fa-reply me-1"></i> Add Comment
+                        </a>
+                    </h5>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="p-4" th:if="${#lists.isEmpty(comments)}">
+                        <div class="text-center py-4 bg-light rounded border">
+                            <i class="far fa-comment-dots text-secondary mb-2 d-block" style="font-size: 2rem;"></i>
+                            <p class="mb-0 text-muted">No comments yet. Be the first to comment!</p>
+                        </div>
+                    </div>
+
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item border-0 border-bottom py-4 px-4" th:each="comment : ${comments}">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center">
+                                    <!-- Restored rounded avatar -->
+                                    <div class="rounded-circle bg-light border p-2 me-2" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-user text-secondary"></i>
+                                    </div>
+                                    <h6 class="mb-0 fw-bold" th:text="${comment.user.username}"></h6>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <small class="text-muted badge bg-light rounded-pill px-2 py-1 me-2" th:text="${#temporals.format(comment.createdAt, 'dd MMM yyyy, HH:mm')}"></small>
+                                    <div th:if="${comment.user.id == currentUserId}">
+                                        <form th:action="@{/forums/{postId}/comments/delete/{commentId}(postId=${post.id}, commentId=${comment.id})}" method="post">
+                                            <button type="submit" class="btn btn-sm btn-light border">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="ms-4 ps-2 border-start border-3 border-primary bg-light p-3 rounded">
+                                <pre class="mb-3 text-dark convert-links"
+                                     style="font-family: 'Arial', sans-serif;"
+                                     th:text="${comment.content}"></pre>
+
+                                <div class="mb-2 border p-1 rounded" th:if="${comment.imageUrl}">
+                                    <img th:src="${comment.imageUrl}" class="img-fluid rounded" style="max-height: 200px;" alt="Comment Image">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comment Form with improved styling -->
+            <div class="card border-0 shadow mb-4" id="add-comment">
+                <!-- Colored top border for visual distinction -->
+                <div class="bg-primary" style="height: 4px;"></div>
+
+                <div class="card-body p-4">
+                    <h5 class="mb-3 fw-bold">
+                        <i class="fas fa-reply text-primary me-2"></i>Add Your Comment
+                    </h5>
+
+                    <form th:action="@{/forums/{id}/comments(id=${post.id})}" method="post" th:object="${newComment}" enctype="multipart/form-data" class="border rounded p-3 bg-light">
+                        <div class="mb-3">
+                            <textarea class="form-control bg-white border p-3"
+                                      style="border-radius: 0.5rem; resize: none;"
+                                      th:field="*{content}"
+                                      placeholder="Share your thoughts..."
+                                      required rows="3"></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <label for="imageUpload" class="btn btn-outline-primary btn-sm rounded-pill shadow-sm">
+                                    <i class="fas fa-image me-1"></i> Add Image
+                                </label>
+                                <input type="file" class="d-none" id="imageUpload" name="image" accept="image/*">
+
+                                <div id="imagePreviewContainer" class="mt-2 d-none position-relative">
+                                    <img id="imagePreview" class="img-fluid rounded border p-1" style="max-height: 150px;">
+                                    <button type="button" id="removeImage"
+                                            class="btn btn-sm btn-danger position-absolute d-flex align-items-center justify-content-center rounded-circle"
+                                            style="top: 5px; right: 5px; width: 24px; height: 24px; padding: 0;">
+                                        <i class="fas fa-times" style="font-size: 12px;"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                                <i class="fas fa-paper-plane me-1"></i> Post
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/js/forums/detail.js}"></script>
+    <script>
+        document.getElementById("backButton").setAttribute("data-post-id", [[${post.id}]]);
+    </script>
+</div>

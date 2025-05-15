@@ -1,0 +1,168 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+
+    <link href="/css/feedbacks/course-feedback-form.css" rel="stylesheet">
+    <div class="container mt-4">
+        <div class="card shadow-lg border-0 rounded-4">
+            <!-- Header -->
+            <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+                <i class="bi bi-journal-bookmark me-2 fs-4"></i>
+                <h1 class="mb-0 fw-bold">Feedback for Course</h1>
+            </div>
+
+            <div class="card-body p-4">
+                <!-- Error Message -->
+                <div th:if="${error}" class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                </div>
+
+                <!-- Form -->
+                <form th:action="@{/feedbacks/courses/user}" th:object="${feedbackDTO}" method="post" novalidate>
+                    <!-- Course Selection -->
+                    <div class="mb-4">
+                        <div class="form-group">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-book me-2"></i>Course
+                            </label>
+                            <input type="text" list="courseList" class="form-control border-0 shadow-sm rounded-3" id="courseInput" placeholder="Type to search for a course..." required>
+                            <datalist id="courseList">
+                                <option th:each="course : ${courses}" th:value="${course.name}" th:data-id="${course.id}" th:text="${course.name}"></option>
+                            </datalist>
+                            <input type="hidden" th:field="*{courseId}" id="courseIdInput">
+                        </div>
+                    </div>
+
+                    <!-- Course Feedback Section -->
+                    <div class="mb-3">
+                        <h5 class="fw-semibold mb-3">Course Feedback</h5>
+                        <div class="row">
+                            <!-- Left Column -->
+                            <div class="col-md-6">
+                                <!-- Course Material -->
+                                <div class="mb-3 rating-container d-flex align-items-center gap-3">
+                                    <label class="form-label fw-semibold mb-0" style="width: 180px; white-space: nowrap;">
+                                        <i class="bi bi-book me-2"></i>Course Material
+                                    </label>
+                                    <div class="star-rating" id="courseMaterial">
+                                        <i class="fas fa-star" data-value="1"></i>
+                                        <i class="fas fa-star" data-value="2"></i>
+                                        <i class="fas fa-star" data-value="3"></i>
+                                        <i class="fas fa-star" data-value="4"></i>
+                                        <i class="fas fa-star" data-value="5"></i>
+                                    </div>
+                                    <input type="hidden" th:field="*{courseMaterialRating}" id="courseMaterialInput">
+                                </div>
+
+                                <!-- Practical Applications -->
+                                <div class="mb-3 rating-container d-flex align-items-center gap-3">
+                                    <label class="form-label fw-semibold mb-0" style="width: 180px; white-space: nowrap;">
+                                        <i class="bi bi-tools me-2"></i>Practical Applications
+                                    </label>
+                                    <div class="star-rating" id="practicalApplications">
+                                        <i class="fas fa-star" data-value="1"></i>
+                                        <i class="fas fa-star" data-value="2"></i>
+                                        <i class="fas fa-star" data-value="3"></i>
+                                        <i class="fas fa-star" data-value="4"></i>
+                                        <i class="fas fa-star" data-value="5"></i>
+                                    </div>
+                                    <input type="hidden" th:field="*{practicalApplicationsRating}" id="practicalApplicationsInput">
+                                </div>
+
+                                <!-- Clarity of Explanation -->
+                                <div class="mb-3 rating-container d-flex align-items-center gap-3">
+                                    <label class="form-label fw-semibold mb-0" style="width: 180px; white-space: nowrap;">
+                                        <i class="bi bi-chat-dots me-2"></i>Clarity of Explanation
+                                    </label>
+                                    <div class="star-rating" id="clarityofExplanation">
+                                        <i class="fas fa-star" data-value="1"></i>
+                                        <i class="fas fa-star" data-value="2"></i>
+                                        <i class="fas fa-star" data-value="3"></i>
+                                        <i class="fas fa-star" data-value="4"></i>
+                                        <i class="fas fa-star" data-value="5"></i>
+                                    </div>
+                                    <input type="hidden" th:field="*{clarityofExplanationRating}" id="clarityOfExplanationInput">
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                                <!-- Course Structure -->
+                                <div class="mb-3 rating-container d-flex align-items-center gap-3">
+                                    <label class="form-label fw-semibold mb-0" style="width: 180px; white-space: nowrap;">
+                                        <i class="bi bi-diagram-3 me-2"></i>Course Structure
+                                    </label>
+                                    <div class="star-rating" id="courseStructure">
+                                        <i class="fas fa-star" data-value="1"></i>
+                                        <i class="fas fa-star" data-value="2"></i>
+                                        <i class="fas fa-star" data-value="3"></i>
+                                        <i class="fas fa-star" data-value="4"></i>
+                                        <i class="fas fa-star" data-value="5"></i>
+                                    </div>
+                                    <input type="hidden" th:field="*{courseStructureRating}" id="courseStructureInput">
+                                </div>
+
+                                <!-- Support Materials -->
+                                <div class="mb-3 rating-container d-flex align-items-center gap-3">
+                                    <label class="form-label fw-semibold mb-0" style="width: 180px; white-space: nowrap;">
+                                        <i class="bi bi-files me-2"></i>Support Materials
+                                    </label>
+                                    <div class="star-rating" id="supportMaterials">
+                                        <i class="fas fa-star" data-value="1"></i>
+                                        <i class="fas fa-star" data-value="2"></i>
+                                        <i class="fas fa-star" data-value="3"></i>
+                                        <i class="fas fa-star" data-value="4"></i>
+                                        <i class="fas fa-star" data-value="5"></i>
+                                    </div>
+                                    <input type="hidden" th:field="*{supportMaterialsRating}" id="supportMaterialsInput">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comments Section -->
+                    <div class="mb-4">
+
+                        <div class="row">
+                            <!-- Course Comment -->
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label class="form-label fw-semibold">
+                                        <i class="bi bi-chat-text me-2"></i>Course Comment
+                                    </label>
+                                    <textarea th:field="*{commentCourse}" name="course_comment" rows="3" class="form-control border-0 shadow-sm rounded-3" id="id_course_comment" placeholder="Enter your comment about the course (optional)"></textarea>
+                                </div>
+                            </div>
+                            <!-- Material Comment -->
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label class="form-label fw-semibold">
+                                        <i class="bi bi-chat-text me-2"></i>Material Comment
+                                    </label>
+                                    <textarea th:field="*{materialCourse}" name="material_comment" rows="3" class="form-control border-0 shadow-sm rounded-3" id="id_material_comment" placeholder="Enter your comment about the material (optional)"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary px-4 me-3 shadow-lg rounded-3" id="submitButton" disabled>
+                            <i class="bi bi-save me-2"></i>Submit Feedback
+                        </button>
+
+                        <a th:href="${currentRole == 'Student'} ? '/feedbacks/courses/user/list' : '/feedbacks/courses'"
+                           class="btn btn-outline-secondary px-4 shadow-lg rounded-3">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Course
+                        </a>
+
+                    </div>
+                </form>
+            </div>
+
+        </div>
+
+    </div>
+    <script th:src="@{/js/feedbacks/course-feedback-form.js}"></script>
+    <script src="/js/feedbacks/course-feedback-form.js"></script>
+
+</div>

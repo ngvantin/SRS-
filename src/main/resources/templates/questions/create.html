@@ -1,0 +1,267 @@
+<div class="px-5" th:fragment="content">
+  <div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-4">
+      <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+        <i class="bi bi-question-circle me-2 fs-4"></i>
+        <h1>Add Multiple Questions</h1>
+      </div>
+      <div class="card-body p-4">
+        <form id="questionsForm" th:action="@{/questions/saveall/{id}(id=${quizId})}" method="post" th:object="${questions}">
+          <div class="scrollable-table">
+            <div id="questionsContainer">
+              <div class="card shadow-sm mt-4 question-card">
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Close" onclick="removeCard(this)" title="Remove question"></button>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <label class="form-label">Question Text</label>
+                    <textarea name="questions[0].text" rows="3" class="form-control question-text" placeholder="Enter question"></textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Question Type</label>
+                    <select name="questions[0].type" class="form-select question-type" required>
+                      <option th:each="type : ${types}" th:value="${type}" th:text="${type}"></option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Points</label>
+                    <input type="number" name="questions[0].points" class="form-control" placeholder="Enter points" value="1" required>
+                  </div>
+                  <div class="answerOptionContainer">
+                    <div class="input-group mb-2 answer-group">
+                      <div class="input-group-text">
+                        <input class="form-check-input mt-0" type="checkbox" name="questions[0].answers[0].isCorrect" value="true" onchange="toggleHiddenInput(this)">
+                        <input type="hidden" class="is-correct-hidden" name="questions[0].answers[0].isCorrect" value="false">
+                      </div>
+                      <input type="text" name="questions[0].answers[0].text" class="form-control" placeholder="Answer text" required>
+                      <button type="button" class="btn btn-outline-secondary removeOptionBtn" title="Remove answer option"><i class="bi bi-trash"></i></button>
+                    </div>
+                  </div>
+                  <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-secondary mt-2 addAnswerOptionBtn" title="Add answer option">Add answer option</button>
+                  </div>
+                </div>
+              </div>
+              <!-- Dynamically added questions will appear here -->
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="button" class="btn btn-primary" id="addQuestionBtn" title="Add question"><i class="bi bi-plus-circle"></i></button>
+            <button type="submit" class="btn btn-success" title="Save"><i class="bi bi-check-circle"></i></button>
+            <a th:href="@{/quizzes/edit/{id}(id=${quizId})}" class="btn btn-secondary" title="Back to quiz edit"><i class="bi bi-arrow-left"></i></a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- JavaScript Section -->
+    <script th:inline="javascript">
+      const addQuestionBtn = document.getElementById('addQuestionBtn');
+      const questionsContainer = document.getElementById('questionsContainer');
+      const types = /*[[${types}]]*/ []; // Thymeleaf will populate this with question types
+
+      function isDuplicateQuestion(questionText, questionType) {
+        const questionCards = document.querySelectorAll('.question-card');
+        let count = 0;
+
+        for (const card of questionCards) {
+          const textInput = card.querySelector('input[name$=".text"]') || card.querySelector('textarea[name$=".text"]');
+          const typeSelect = card.querySelector('select[name$=".type"]');
+
+          if (textInput && typeSelect) {
+            const textValue = textInput.ckeditorInstance ? textInput.ckeditorInstance.getData().trim() : textInput.value.trim();
+            if (textValue === questionText && typeSelect.value === questionType) {
+              count++;
+              if (count > 1) return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      function showDuplicateMessage(card) {
+        let existingMessage = card.querySelector('.duplicate-warning');
+        if (!existingMessage) {
+          const messageDiv = document.createElement('div');
+          messageDiv.className = 'alert alert-warning mt-2 duplicate-warning';
+          messageDiv.textContent = '⚠️ This question already exists with the same text and type.';
+          card.querySelector('.card-body').appendChild(messageDiv);
+        }
+      }
+
+      function removeDuplicateMessage(card) {
+        const existingMessage = card.querySelector('.duplicate-warning');
+        if (existingMessage) {
+          existingMessage.remove();
+        }
+      }
+
+      addQuestionBtn.addEventListener('click', () => {
+        const questionIndex = questionsContainer.querySelectorAll('.question-card').length;
+        const questionCard = `
+                    <div class="card shadow-sm mt-4 question-card">
+                        <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Close" onclick="removeCard(this)" title="Remove question"></button>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Question Text</label>
+                                <textarea name="questions[${questionIndex}].text" rows="3" class="form-control question-text" placeholder="Enter question"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Question Type</label>
+                                <select name="questions[${questionIndex}].type" class="form-select question-type" required>
+                                    ${types.map(type => `<option th:value="${type}">${type}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Points</label>
+                                <input type="number" name="questions[${questionIndex}].points" class="form-control" placeholder="Enter points" value="1" required>
+                            </div>
+                            <div class="answerOptionContainer">
+                                <div class="input-group mb-2 answer-group">
+                                  <div class="input-group-text">
+                                      <input class="form-check-input mt-0" type="checkbox" name="questions[${questionIndex}].answers[0].isCorrect" value="true" onchange="toggleHiddenInput(this)">
+                                      <input type="hidden" class="is-correct-hidden" name="questions[${questionIndex}].answers[0].isCorrect" value="false">
+                                  </div>
+                                  <input type="text" name="questions[${questionIndex}].answers[0].text" class="form-control" placeholder="Answer text" required>
+                                  <button type="button" class="btn btn-outline-secondary removeOptionBtn" title="Remove answer option"><i class="bi bi-trash"></i></button>
+                              </div>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-secondary mt-2 addAnswerOptionBtn" title="Add answer option">Add answer option</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        questionsContainer.insertAdjacentHTML('beforeend', questionCard);
+        const newTextarea = questionsContainer.lastElementChild.querySelector('.question-text');
+        ClassicEditor.create(newTextarea)
+                .then(editor => {
+                  // Store editor instance for later use
+                  newTextarea.ckeditorInstance = editor;
+                })
+                .catch(error => console.error(error));
+      });
+
+      function removeCard(button) {
+        const card = button.closest('.card');
+        const textarea = card.querySelector('.question-text');
+        if (textarea && textarea.ckeditorInstance) {
+          textarea.ckeditorInstance.destroy();
+        }
+        card.remove();
+      }
+
+      questionsContainer.addEventListener('click', function (event) {
+        if (event.target.classList.contains('addAnswerOptionBtn')) {
+          const questionCard = event.target.closest('.question-card');
+          const answerOptionContainer = questionCard.querySelector('.answerOptionContainer');
+
+          const questionInput = questionCard.querySelector('textarea[name$=".text"]');
+          if (!questionInput) return;
+
+          const qIndex = questionInput.name.match(/questions\[(\d+)\]/)[1];
+          const answerIndex = answerOptionContainer.querySelectorAll('.answer-group').length;
+
+          const answerCard = `
+                        <div class="input-group mb-2 answer-group">
+                            <div class="input-group-text">
+                                <input class="form-check-input mt-0" type="checkbox" name="questions[${qIndex}].answers[${answerIndex}].isCorrect" value="true" onchange="toggleHiddenInput(this)">
+                                <input type="hidden" class="is-correct-hidden" name="questions[${qIndex}].answers[${answerIndex}].isCorrect" value="false">
+                            </div>
+                            <input type="text" name="questions[${qIndex}].answers[${answerIndex}].text" class="form-control" placeholder="Answer text" required>
+                            <button type="button" class="btn btn-outline-secondary removeOptionBtn" title="Remove answer option"><i class="bi bi-trash"></i></button>
+                        </div>
+                    `;
+          answerOptionContainer.insertAdjacentHTML('beforeend', answerCard);
+        }
+
+        if (event.target.closest('.removeOptionBtn')) {
+          event.target.closest('.input-group').remove();
+        }
+      });
+
+      function toggleHiddenInput(checkbox) {
+        const answerGroup = checkbox.closest('.answer-group');
+        let hiddenInput = answerGroup.querySelector('.is-correct-hidden');
+
+        if (checkbox.checked) {
+          if (hiddenInput) {
+            hiddenInput.remove();
+          }
+        } else {
+          if (!hiddenInput) {
+            const name = checkbox.getAttribute('name');
+            hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = name;
+            hiddenInput.value = 'false';
+            hiddenInput.className = 'is-correct-hidden';
+            answerGroup.appendChild(hiddenInput);
+          }
+        }
+      }
+
+      document.addEventListener("input", function (event) {
+        const inputField = event.target;
+
+        if (inputField.matches('textarea[name$=".text"], select[name$=".type"]')) {
+          const questionCard = inputField.closest('.question-card');
+          removeDuplicateMessage(questionCard);
+
+          const questionTextArea = questionCard.querySelector('textarea[name$=".text"]');
+          const questionType = questionCard.querySelector('select[name$=".type"]').value;
+          const questionText = questionTextArea.ckeditorInstance ? questionTextArea.ckeditorInstance.getData().trim() : questionTextArea.value.trim();
+
+          if (isDuplicateQuestion(questionText, questionType)) {
+            showDuplicateMessage(questionCard);
+          }
+        }
+      });
+
+      // Initialize CKEditor on any initial question textareas (if rendered by Thymeleaf)
+      document.querySelectorAll('.question-text').forEach(textarea => {
+        ClassicEditor.create(textarea, {
+          height: '120px'
+        })
+                .then(editor => {
+                  textarea.ckeditorInstance = editor;
+
+                  editor.model.document.on('change:data', () => {
+                    textarea.value = editor.getData();
+                  });
+                })
+                .catch(error => console.error(error));
+      });
+
+      // Before submitting, update all textarea values from CKEditor
+      document.getElementById('questionForm').addEventListener('submit', function (e) {
+        let isValid = true;
+
+        document.querySelectorAll('.question-text').forEach(textarea => {
+          if (textarea.ckeditorInstance) {
+            const data = textarea.ckeditorInstance.getData().trim();
+            textarea.value = data; // update the hidden textarea
+
+            if (!data) {
+              isValid = false;
+              // Optional: highlight or scroll to error
+              const card = textarea.closest('.question-card');
+              card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              card.classList.add('border', 'border-danger');
+            }
+          }
+        });
+
+        if (!isValid) {
+          e.preventDefault();
+          alert("Please fill out all required question texts.");
+        }
+      });
+
+
+    </script>
+
+    <!-- CKEditor Script -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+  </div>
+</div>

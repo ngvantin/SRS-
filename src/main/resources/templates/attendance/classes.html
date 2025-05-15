@@ -1,0 +1,398 @@
+<div class="px-5 content-scrollable" th:fragment="content">
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-dark">Danh sách lớp học cho điểm danh</h2>
+            <div>
+                <a th:href="@{/attendance/new}" class="btn btn-dark">
+                    <i class="fas fa-plus"></i> Tạo điểm danh mới
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${success != null}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${error != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
+            <div class="col">
+                <div class="card text-center h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="rounded-circle bg-light d-inline-flex justify-content-center align-items-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-chalkboard text-secondary fs-4"></i>
+                        </div>
+                        <h3 class="text-dark fw-bold" th:text="${totalClasses != null ? totalClasses : 0}">1</h3>
+                        <p class="text-muted mb-0">Tổng số lớp học</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-center h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="rounded-circle bg-light d-inline-flex justify-content-center align-items-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-users text-secondary fs-4"></i>
+                        </div>
+                        <h3 class="text-dark fw-bold" th:text="${totalStudents != null ? totalStudents : 0}">1</h3>
+                        <p class="text-muted mb-0">Tổng số học viên</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-center h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="rounded-circle bg-light d-inline-flex justify-content-center align-items-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-clipboard-check text-secondary fs-4"></i>
+                        </div>
+                        <h3 class="text-dark fw-bold" th:text="${totalAttendanceDates != null ? totalAttendanceDates : 0}">2</h3>
+                        <p class="text-muted mb-0">Lượt điểm danh</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-center h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="rounded-circle bg-light d-inline-flex justify-content-center align-items-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-chart-pie text-secondary fs-4"></i>
+                        </div>
+                        <h3 class="text-dark fw-bold" th:text="${averageAttendanceRate != null ? #numbers.formatDecimal(averageAttendanceRate, 1, 2) + '%' : '0.00%'}">50.00%</h3>
+                        <p class="text-muted mb-0">Tỷ lệ tham dự trung bình</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <form id="searchForm" class="row g-3">
+                    <div class="col-md-9">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" id="searchInput" class="form-control"
+                                   placeholder="Tìm kiếm theo tên hoặc mã lớp..."
+                                   th:value="${param.searchTerm != null ? param.searchTerm : ''}">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" id="searchButton" class="btn btn-dark w-100">
+                            Tìm kiếm
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs mb-4" id="attendanceTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="classes-tab" data-bs-toggle="tab" data-bs-target="#classes-content"
+                        type="button" role="tab" aria-controls="classes-content" aria-selected="true">
+                    <i class="fas fa-list-ul me-1"></i> Danh sách lớp
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="charts-tab" data-bs-toggle="tab" data-bs-target="#charts-content"
+                        type="button" role="tab" aria-controls="charts-content" aria-selected="false">
+                    <i class="fas fa-chart-bar me-1"></i> Biểu đồ thống kê
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="attendanceTabContent">
+            <div class="tab-pane fade show active" id="classes-content" role="tabpanel" aria-labelledby="classes-tab">
+                <div class="d-flex justify-content-end mb-3">
+                    <div class="btn-group" role="group" aria-label="Chọn kiểu hiển thị">
+                        <button type="button" class="btn btn-outline-secondary active" id="cardViewBtn">
+                            <i class="fas fa-th-large me-1"></i> Dạng thẻ
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="listViewBtn">
+                            <i class="fas fa-list me-1"></i> Dạng danh sách
+                        </button>
+                    </div>
+                </div>
+
+                <div th:if="${activeClasses == null || #lists.isEmpty(activeClasses)}" class="text-center my-5 py-5">
+                    <div class="mb-3">
+                        <div class="rounded-circle bg-light d-inline-flex justify-content-center align-items-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-school text-secondary fa-2x"></i>
+                        </div>
+                        <h5 class="mt-3 text-dark">Không có lớp học đang hoạt động</h5>
+                        <p class="text-muted">Tạo lớp học mới để bắt đầu quản lý điểm danh</p>
+                        <a th:href="@{/classes}" class="btn btn-dark mt-2">
+                            <i class="fas fa-plus me-1"></i> Tạo lớp học mới
+                        </a>
+                    </div>
+                </div>
+
+                <div th:if="${activeClasses != null && !#lists.isEmpty(activeClasses)}" class="row row-cols-1 row-cols-md-3 g-4" id="cardViewContainer">
+                    <div th:each="classItem, iterStat : ${activeClasses}" class="col class-card"
+                         th:classappend="${iterStat.index >= 6 ? 'hidden-card' : ''}">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                                <strong th:text="${classItem.name}" class="class-name">Tên lớp học</strong>
+                                <span class="badge bg-light text-dark class-code" th:text="${classItem.classCode}">MÃ LỚP</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                                        <span class="text-muted"><i class="fas fa-users me-1"></i> Học viên:</span>
+                                        <strong th:text="${classItem.getStudentCount()}">25</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                                        <span class="text-muted"><i class="fas fa-calendar me-1"></i> Bắt đầu:</span>
+                                        <strong th:text="${classItem.startDate != null ? #temporals.format(classItem.startDate, 'dd/MM/yyyy') : '-'}">01/01/2023</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-muted"><i class="fas fa-calendar-check me-1"></i> Kết thúc:</span>
+                                        <strong th:text="${classItem.endDate != null ? #temporals.format(classItem.endDate, 'dd/MM/yyyy') : '-'}">30/06/2023</strong>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 pt-2 border-top">
+                                    <p class="text-muted mb-1 small">Điểm danh gần đây:</p>
+                                    <div th:if="${classLastAttendance != null && classLastAttendance.containsKey(classItem.id)}">
+                                        <span th:text="${#temporals.format(classLastAttendance.get(classItem.id), 'dd/MM/yyyy')}">22/02/2023</span>
+                                        <span th:if="${#temporals.format(classLastAttendance.get(classItem.id), 'yyyy-MM-dd') == #temporals.format(today, 'yyyy-MM-dd')}"
+                                              class="badge bg-success ms-2">Hôm nay</span>
+                                    </div>
+                                    <div th:unless="${classLastAttendance != null && classLastAttendance.containsKey(classItem.id)}">
+                                        <span class="text-muted fst-italic small">Chưa có điểm danh</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white">
+                                <a th:href="@{/attendance/class/{id}(id=${classItem.id})}" class="btn btn-dark w-100">
+                                    <i class="fas fa-calendar-alt me-1"></i> Xem điểm danh
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="load-more-container" class="text-center mt-4" th:if="${activeClasses != null && #lists.size(activeClasses) > 6}">
+                    <button id="load-more-btn" class="btn btn-outline-secondary">
+                        <i class="fas fa-plus-circle me-1"></i> Xem thêm
+                    </button>
+                </div>
+
+                <div th:if="${activeClasses != null && !#lists.isEmpty(activeClasses)}" id="listViewContainer" class="d-none">
+                    <div th:replace="attendance/classes-table-view :: classes-table-view"></div>
+                </div>
+
+                <div id="noResultsMessage" class="alert alert-info text-center mt-4 d-none">
+                    <i class="fas fa-search me-2"></i>
+                    <span>Không tìm thấy lớp học nào phù hợp với từ khóa tìm kiếm.</span>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="charts-content" role="tabpanel" aria-labelledby="charts-tab">
+                <div th:replace="attendance/charts :: attendanceCharts"></div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            const classCards = document.querySelectorAll('.class-card');
+            const noResultsMessage = document.getElementById('noResultsMessage');
+            const cardViewBtn = document.getElementById('cardViewBtn');
+            const listViewBtn = document.getElementById('listViewBtn');
+            const cardViewContainer = document.getElementById('cardViewContainer');
+            const listViewContainer = document.getElementById('listViewContainer');
+            const loadMoreBtn = document.getElementById('load-more-btn');
+
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', loadMoreCards);
+            }
+
+            const hiddenCards = document.querySelectorAll('.hidden-card');
+            if (hiddenCards.length === 0) {
+                const loadMoreContainer = document.getElementById('load-more-container');
+                if (loadMoreContainer) {
+                    loadMoreContainer.style.display = 'none';
+                }
+            }
+
+            cardViewBtn.addEventListener('click', function() {
+                cardViewBtn.classList.add('active');
+                listViewBtn.classList.remove('active');
+                cardViewContainer.classList.remove('d-none');
+                listViewContainer.classList.add('d-none');
+
+                const loadMoreContainer = document.getElementById('load-more-container');
+                if (loadMoreContainer && document.querySelectorAll('.hidden-card').length > 0) {
+                    loadMoreContainer.style.display = '';
+                }
+
+                localStorage.setItem('preferredView', 'card');
+            });
+
+            listViewBtn.addEventListener('click', function() {
+                listViewBtn.classList.add('active');
+                cardViewBtn.classList.remove('active');
+                listViewContainer.classList.remove('d-none');
+                cardViewContainer.classList.add('d-none');
+
+                const loadMoreContainer = document.getElementById('load-more-container');
+                if (loadMoreContainer) {
+                    loadMoreContainer.style.display = 'none';
+                }
+
+                localStorage.setItem('preferredView', 'list');
+            });
+
+            const loadPreferredView = function() {
+                const preferredView = localStorage.getItem('preferredView') || 'card';
+                if (preferredView === 'list') {
+                    listViewBtn.click();
+                } else {
+                    cardViewBtn.click();
+                }
+            };
+
+            loadPreferredView();
+
+            searchButton.addEventListener('click', performSearch);
+            searchInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            function performSearch() {
+                const searchTerm = searchInput.value.trim().toLowerCase();
+                let foundResults = false;
+
+                if (searchTerm === '') {
+                    classCards.forEach(card => {
+                        card.classList.remove('d-none');
+                        if (card.classList.contains('hidden-card')) {
+                            card.style.display = 'none';
+                        } else {
+                            card.style.display = '';
+                        }
+                    });
+
+                    const tableRows = document.querySelectorAll('.class-row');
+                    tableRows.forEach(row => {
+                        row.classList.remove('d-none');
+                    });
+
+                    noResultsMessage.classList.add('d-none');
+
+                    const loadMoreContainer = document.getElementById('load-more-container');
+                    if (loadMoreContainer && document.querySelectorAll('.hidden-card').length > 0 &&
+                        !cardViewContainer.classList.contains('d-none')) {
+                        loadMoreContainer.style.display = '';
+                    }
+
+                    return;
+                }
+
+                const loadMoreContainer = document.getElementById('load-more-container');
+                if (loadMoreContainer) {
+                    loadMoreContainer.style.display = 'none';
+                }
+
+                classCards.forEach(card => {
+                    const className = card.querySelector('.class-name').textContent.toLowerCase();
+                    const classCode = card.querySelector('.class-code').textContent.toLowerCase();
+
+                    if (className.includes(searchTerm) || classCode.includes(searchTerm)) {
+                        card.classList.remove('d-none');
+                        card.classList.remove('hidden-card');
+                        card.style.display = '';
+                        foundResults = true;
+                    } else {
+                        card.classList.add('d-none');
+                    }
+                });
+
+                const tableRows = document.querySelectorAll('.class-row');
+                tableRows.forEach(row => {
+                    const className = row.querySelector('.class-name').textContent.toLowerCase();
+                    const classCode = row.querySelector('.class-code').textContent.toLowerCase();
+
+                    if (className.includes(searchTerm) || classCode.includes(searchTerm)) {
+                        row.classList.remove('d-none');
+                        foundResults = true;
+                    } else {
+                        row.classList.add('d-none');
+                    }
+                });
+
+                noResultsMessage.classList.toggle('d-none', foundResults);
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlSearchTerm = urlParams.get('searchTerm');
+            if (urlSearchTerm) {
+                searchInput.value = urlSearchTerm;
+                performSearch();
+            }
+        });
+
+        function loadMoreCards() {
+            const cards = document.querySelectorAll('.hidden-card');
+            let counter = 0;
+
+            for (let i = 0; i < cards.length && counter < 6; i++) {
+                if (cards[i].classList.contains('hidden-card')) {
+                    cards[i].classList.remove('hidden-card');
+                    counter++;
+                }
+            }
+
+            const remainingHiddenCards = document.querySelectorAll('.hidden-card');
+            if (remainingHiddenCards.length === 0) {
+                document.getElementById('load-more-container').style.display = 'none';
+            }
+        }
+    </script>
+
+    <style>
+        .content-scrollable {
+            height: calc(100vh - 50px);
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
+
+        .content-scrollable::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .content-scrollable::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 8px;
+        }
+
+        .content-scrollable::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 8px;
+        }
+
+        .content-scrollable::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .class-card .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .class-card .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .hidden-card {
+            display: none;
+        }
+    </style>
+</div>

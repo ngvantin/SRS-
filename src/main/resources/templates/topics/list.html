@@ -1,0 +1,261 @@
+<div class="px-5" th:fragment="content">
+  <div class="container mt-4">
+    <h1 class="text-center">Topics</h1>
+
+    <!-- Thanh tìm kiếm -->
+    <div class="d-flex justify-content-between align-items-center my-3">
+      <form th:action="@{/topics}" method="get" class="input-group w-75">
+
+        <!-- Combo box chọn course -->
+        <select class="form-select me-2" name="courseId">
+          <option value="">All Courses</option>
+          <option th:each="course : ${courses}"
+                  th:value="${course.id}"
+                  th:text="${course.name}"
+                  th:selected="${course.id == selectedCourseId}">
+          </option>
+        </select>
+
+        <!-- Ô input tìm kiếm topic hoặc tên course -->
+        <input type="text" class="form-control" name="keyword"
+               placeholder="Search by topic or course name"
+               th:value="${keyword}">
+
+        <!-- Nút tìm -->
+        <button type="submit" class="btn btn-outline-secondary">
+          <i class="fas fa-search"></i>
+        </button>
+
+        <!-- Nút reset -->
+        <a th:href="@{/topics}" class="btn btn-outline-secondary ms-2">
+          <i class="fas fa-sync-alt"></i>
+        </a>
+      </form>
+
+      <!-- Các nút chức năng -->
+      <div class="d-flex gap-2">
+        <!-- Import Excel -->
+        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#importModal" title="Import">
+          <i class="bi bi-upload"></i>
+        </button>
+
+        <!-- Export Excel -->
+        <a class="btn btn-light border btn-outline-secondary" th:href="@{/topics/export}">
+          <i class="fas fa-file-export"></i>
+        </a>
+
+        <!-- Print -->
+        <a href="/topics/print" class="btn btn-outline-secondary" title="Print">
+          <i class="bi bi-printer"></i>
+        </a>
+
+        <!-- Thêm mới topic -->
+        <a class="btn btn-primary" th:href="@{/topics/new}">
+          <i class="fas fa-plus"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="importModalLabel">Import Topics from Excel</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Download the Excel template before uploading your file:</p>
+            <a th:href="@{/topics/download-template}" class="text-primary text-decoration-underline">
+              Download Topic Template
+            </a>
+            <form th:action="@{/topics/import}" method="post" enctype="multipart/form-data" class="mt-3">
+              <div class="mb-3">
+                <label for="fileInput" class="form-label">Choose Excel File</label>
+                <input type="file" name="file" id="fileInput" class="form-control" accept=".xlsx,.xls" required>
+              </div>
+              <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-outline-success btn-sm">
+                  <i class="bi bi-upload"></i> Import
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<!--    &lt;!&ndash; Hiển thị thông báo tìm kiếm &ndash;&gt;-->
+<!--    <div th:if="${keyword}" class="alert alert-info d-flex justify-content-between align-items-center">-->
+<!--      <div>-->
+<!--        <i class="fas fa-info-circle"></i> Found-->
+<!--        <span th:text="${topics.totalElements}"></span> results for-->
+<!--        "<b th:text="${keyword}"></b>"-->
+<!--      </div>-->
+<!--    </div>-->
+
+    <!-- Bảng danh sách topics -->
+    <div class="card">
+      <div class="card-body p-0">
+        <table class="table table-bordered">
+          <thead class="table-light">
+          <tr>
+            <th><input type="checkbox" id="selectAll"></th>
+            <th>#</th>
+            <th>Topic</th>
+            <th>Course Name</th>
+            <th>Actions</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="topic : ${topics.content}">
+            <td><input type="checkbox" name="selectedTopics" th:value="${topic.topicId}"></td>
+            <td th:text="${topic.topicId}"></td>
+            <td th:text="${topic.topicName}"></td>
+            <td th:text="${topic.course}"></td>
+            <td>
+              <a th:href="@{/topics/edit/{id}(id=${topic.topicId})}" class="btn btn-light border btn-sm btn-outline-secondary">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </a>
+              <form th:action="@{/topics/delete/{id}(id=${topic.topicId})}" style="display:inline;" onsubmit="return confirm('Are you sure?');">
+                <button type="submit" class="btn btn-light border btn-sm btn-outline-secondary">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Xóa nhiều topic -->
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <!-- Nút xóa -->
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-danger" id="deleteSelected">
+          <i class="fas fa-trash"></i> Delete Selected (0)
+        </button>
+        <span>Total Records: <b th:text="${topics.totalElements}"></b></span>
+      </div>
+
+      <!-- Pagination -->
+      <nav aria-label="Topic pagination">
+        <ul class="pagination justify-content-end mb-0" id="pagination">
+          <!-- Nút quay về trang đầu -->
+          <li class="page-item" th:classappend="${topics.first} ? 'disabled'">
+            <a class="page-link" th:href="@{/topics(page=0, size=${topics.size})}"
+               data-page="0" aria-label="First">
+              <i class="bi bi-chevron-double-left"></i>
+            </a>
+          </li>
+
+          <!-- Nút trang trước -->
+          <li class="page-item" th:classappend="${topics.first} ? 'disabled'">
+            <a class="page-link" th:href="@{/topics(page=${topics.number - 1}, size=${topics.size})}"
+               th:data-page="${topics.number - 1}" aria-label="Previous">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+
+          <!-- Trang đầu tiên -->
+          <li class="page-item" th:classappend="${topics.number == 0} ? 'active'">
+            <a class="page-link" th:href="@{/topics(page=0, size=${topics.size})}"
+               data-page="0">1</a>
+          </li>
+
+          <!-- Hiển thị "..." nếu khoảng cách lớn hơn 2 -->
+          <li class="page-item disabled" th:if="${topics.number > 2}">
+            <span class="page-link">...</span>
+          </li>
+
+          <!-- Hiển thị các trang xung quanh trang hiện tại -->
+          <th:block th:each="i : ${#numbers.sequence(topics.number - 1, topics.number + 1)}"
+                    th:if="${i > 0 and i < topics.totalPages - 1}">
+            <li class="page-item" th:classappend="${topics.number == i} ? 'active'">
+              <a class="page-link" th:href="@{/topics(page=${i}, size=${topics.size})}"
+                 th:data-page="${i}" th:text="${i + 1}"></a>
+            </li>
+          </th:block>
+
+          <!-- Hiển thị "..." nếu khoảng cách lớn hơn 2 -->
+          <li class="page-item disabled" th:if="${topics.number < topics.totalPages - 3}">
+            <span class="page-link">...</span>
+          </li>
+
+          <!-- Trang cuối cùng -->
+          <li class="page-item" th:classappend="${topics.number == topics.totalPages - 1} ? 'active'"
+              th:if="${topics.totalPages > 1}">
+            <a class="page-link" th:href="@{/topics(page=${topics.totalPages - 1}, size=${topics.size})}"
+               th:data-page="${topics.totalPages - 1}" th:text="${topics.totalPages}"></a>
+          </li>
+
+          <!-- Nút trang tiếp theo -->
+          <li class="page-item" th:classappend="${topics.last} ? 'disabled'">
+            <a class="page-link" th:href="@{/topics(page=${topics.number + 1}, size=${topics.size})}"
+               th:data-page="${topics.number + 1}" aria-label="Next">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+
+          <!-- Nút đến trang cuối -->
+          <li class="page-item" th:classappend="${topics.last} ? 'disabled'">
+            <a class="page-link" th:href="@{/topics(page=${topics.totalPages - 1}, size=${topics.size})}"
+               th:data-page="${topics.totalPages - 1}" aria-label="Last">
+              <i class="bi bi-chevron-double-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('selectAll').addEventListener('change', function () {
+      let checkboxes = document.querySelectorAll('input[name="selectedTopics"]');
+      checkboxes.forEach(cb => cb.checked = this.checked);
+      updateDeleteCount();
+    });
+
+    document.querySelectorAll('input[name="selectedTopics"]').forEach(cb => {
+      cb.addEventListener('change', updateDeleteCount);
+    });
+
+    function updateDeleteCount() {
+      let selected = document.querySelectorAll('input[name="selectedTopics"]:checked').length;
+      document.getElementById('deleteSelected').innerHTML = `<i class="fas fa-trash"></i> Delete Selected (${selected})`;
+    }
+
+    document.getElementById('deleteSelected').addEventListener('click', function () {
+    let selectedTopicIds = Array.from(document.querySelectorAll('input[name="selectedTopics"]:checked'))
+        .map(cb => cb.value);
+
+    if (selectedTopicIds.length === 0) {
+        alert("No topics selected!");
+        return;
+    }
+
+    if (confirm("Are you sure you want to delete the selected topics?")) {
+        let form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/topics/deleteSelected";
+
+        selectedTopicIds.forEach(topicId => {
+            let input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "selectedTopics";
+            input.value = topicId;
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+});
+
+
+  </script>
+</div>
+
+
+
+

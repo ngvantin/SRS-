@@ -1,0 +1,164 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="container mt-2">
+        <div class="row">
+            <!-- Main Form -->
+            <div class="col-lg-9 col-md-8 col-12">
+                <div class="card shadow-lg border-0 rounded-4 user-edit-scroll">
+                    <!-- Header -->
+                    <div class="card-header text-dark rounded-top-4 d-flex align-items-center">
+                        <i class="bi bi-person-gear me-2 fs-4"></i>
+                        <h1 class="mb-0 fw-bold">Edit User</h1>
+                    </div>
+                    <div class="card-body">
+                        <!-- Error Message -->
+                        <div class="d-none border border-danger rounded-3 p-2 mb-2" id="userUpdateError"></div>
+                        <div class="d-none border border-success rounded-3 p-2 mb-2" id="userUpdateSuccess"></div>
+                        <form id="userUpdateForm" th:object="${user}" autocomplete="off" class="needs-validation" novalidate>
+                            <!-- Personal Information Section -->
+                            <div class="card shadow-sm border-0 rounded-3 mb-4">
+                                <div class="card-header bg-dark text-white rounded-top-3 d-flex align-items-center">
+                                    <i class="bi bi-person me-2"></i>
+                                    <h5 class="mb-0">Personal Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <input type="hidden" name="id" th:value="${user.id}" id="id">
+                                    <div class="row g-3">
+                                        <!-- First Name -->
+                                        <div class="col-md-6">
+                                            <label for="firstName" class="form-label fw-semibold">
+                                                <i class="bi bi-person-badge me-2"></i>First Name
+                                            </label>
+                                            <input type="text" class="form-control border-0 shadow-sm rounded-3" id="firstName" name="firstName" placeholder="Enter first name" required th:field="*{firstName}">
+                                            <div class="invalid-feedback">First name is required</div>
+                                        </div>
+                                        <!-- Last Name -->
+                                        <div class="col-md-6">
+                                            <label for="lastName" class="form-label fw-semibold">
+                                                <i class="bi bi-person-badge me-2"></i>Last Name
+                                            </label>
+                                            <input type="text" class="form-control border-0 shadow-sm rounded-3" id="lastName" name="lastName" placeholder="Enter last name" required th:field="*{lastName}">
+                                            <div class="invalid-feedback">Last name is required</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Account Information Section -->
+                            <div class="card shadow-sm border-0 rounded-3 mb-4">
+                                <div class="card-header bg-dark text-white rounded-top-3 d-flex align-items-center">
+                                    <i class="bi bi-person-vcard me-2"></i>
+                                    <h5 class="mb-0">Account Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <!-- Email -->
+                                        <div class="col-md-6">
+                                            <label for="email" class="form-label fw-semibold">
+                                                <i class="bi bi-envelope me-2"></i>Email Address
+                                            </label>
+                                            <input type="email" class="form-control border-0 shadow-sm rounded-3" id="email" name="email" placeholder="Enter email" required th:field="*{email}">
+                                            <div class="invalid-feedback">Please provide a valid email</div>
+                                        </div>
+                                        <!-- Username -->
+                                        <div class="col-md-6">
+                                            <label for="username" class="form-label fw-semibold">
+                                                <i class="bi bi-at me-2"></i>Username
+                                            </label>
+                                            <input type="text" class="form-control border-0 shadow-sm rounded-3" id="username" name="username" placeholder="Enter username" required th:field="*{username}">
+                                            <div class="invalid-feedback">Username is required</div>
+                                        </div>
+                                        <!-- Password -->
+                                        <div class="col-md-6">
+                                            <label for="password" class="form-label fw-semibold">
+                                                <i class="bi bi-lock me-2"></i>Password
+                                            </label>
+                                            <input type="password" class="form-control border-0 shadow-sm rounded-3" id="password" name="password" placeholder="Leave blank to keep current password" th:field="*{password}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Security Settings Section -->
+                            <div class="card shadow-sm border-0 rounded-3 mb-4">
+                                <div class="card-header bg-dark text-white rounded-top-3 d-flex align-items-center">
+                                    <i class="bi bi-shield-lock me-2"></i>
+                                    <h5 class="mb-0">Security Settings</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="form-check form-switch">
+                                                <input type="checkbox" class="form-check-input" id="enable2FA" name="is2faEnabled" th:field="*{is2faEnabled}">
+                                                <label class="form-check-label fw-semibold" for="enable2FA">
+                                                    Enable Two-Factor Authentication
+                                                </label>
+                                                <div class="form-text">Adds an extra layer of security to the account</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check form-switch">
+                                                <input type="checkbox" class="form-check-input" id="lockAccount" name="isLocked" th:field="*{isLocked}">
+                                                <label class="form-check-label fw-semibold" for="lockAccount">
+                                                    Lock Account
+                                                </label>
+                                                <div class="form-text">Prevents user from logging in</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Roles Section -->
+                            <div class="card shadow-sm border-0 rounded-3 mb-4">
+                                <div class="card-header bg-dark text-white rounded-top-3 d-flex align-items-center">
+                                    <i class="bi bi-person-gear me-2"></i>
+                                    <h5 class="mb-0">Role Assignment</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="input-group mb-3">
+                                        <i class="bi bi-search input-group-text bg-light border-0"></i>
+                                        <input type="text" class="form-control border-0 shadow-sm rounded-3" id="roleSearch"
+                                               placeholder="Search roles..." onkeyup="filterRoles()">
+                                    </div>
+                                    <!-- Fixed Select All -->
+                                    <div class="mb-2">
+                                        <input type="checkbox" id="selectAllRoles" onclick="toggleSelectAll()">
+                                        <label for="selectAllRoles" class="fw-bold">Select All Roles</label>
+                                    </div>
+                                    <!-- Scrollable Role List -->
+                                    <div class="scrollable-table">
+                                        <div class="border p-2 rounded bg-light">
+                                            <div id="roleList">
+                                                <div th:each="role : ${roles}" class="role-item p-2 rounded-2 hover-effect">
+                                                    <input type="checkbox" th:id="'role_' + ${role.id}" name="roles" 
+                                                           th:value="${role.id}" th:checked="${user.roles != null && user.roles.contains(role)}" 
+                                                           class="role-checkbox">
+                                                    <label th:for="'role_' + ${role.id}" class="ms-2" th:text="${role.name}"></label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- Sidebar Buttons -->
+            <div class="col-lg-3 col-md-4 col-12 mb-3">
+                <div class="d-flex flex-column gap-2 sticky-top" style="top: 20px;">
+                    <button type="submit" form="userUpdateForm" class="btn btn-primary btn-block mb-2"><i class="bi bi-save me-2"></i>Save</button>
+                    <a href="/users" class="btn btn-light btn-block mb-2"><i class="bi bi-x-lg me-2"></i>Cancel</a>
+                    <button type="button" class="btn btn-light btn-block mb-2"><i class="bi bi-clock-history me-2"></i>View History</button>
+                    <button type="button" class="btn btn-light btn-block mb-2"><i class="bi bi-files me-2"></i>Duplicate</button>
+                    <button type="button" class="btn btn-light btn-block mb-2"><i class="bi bi-file-earmark-person me-2"></i>User Transcript</button>
+                    <button type="button" class="btn btn-light btn-block mb-2"><i class="bi bi-person-plus me-2"></i>Enroll</button>
+                    <button type="button" class="btn btn-light btn-block mb-2"><i class="bi bi-person-check me-2"></i>Assign</button>
+                    <button type="button" class="btn btn-light btn-block mb-2"><i class="bi bi-chat-dots me-2"></i>Message</button>
+                    <button type="button" class="btn btn-light btn-block mb-2"><i class="bi bi-key me-2"></i>Reset Password</button>
+                    <button type="button" class="btn btn-light btn-block mb-2"><i class="bi bi-bar-chart-line me-2"></i>Progress User</button>
+                    <button type="button" class="btn btn-light btn-block mb-2"><i class="bi bi-trash me-2"></i>Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <link rel="stylesheet" th:href="@{/css/users/update.css}">
+    <script th:src="@{/js/users/update.js}"></script>
+</div>

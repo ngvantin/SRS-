@@ -1,0 +1,177 @@
+<div class="px-5" th:fragment="content">
+    <div class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-center align-items-center">
+                    <h1 class="mb-0">
+                        Achievement Management
+                    </h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- Combined User Selection and Statistics Card -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm rounded">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-users me-2"></i>User Selection & Statistics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- User Selection -->
+                            <div class="col-lg-4">
+                                <form id="userForm" method="get" class="mb-4">
+                                    <label class="form-label fw-semibold">Select User</label>
+                                    <div class="input-group mb-3">
+                                        <input type="text" class="form-control" id="userSearch" list="userList"
+                                               placeholder="Type to search or select a user" autocomplete="off"/>
+                                        <input type="hidden" id="userId" name="userId"/>
+                                        <button type="submit" class="btn btn-primary" style="display: none">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                        <datalist id="userList" placeholder="Search by user">
+                                            <!--                                            <option value="&#45;&#45; All Users &#45;&#45;" data-id=""></option>-->
+                                            <option th:each="user : ${users}"
+                                                    th:value="${user.firstName + ' ' + user.lastName + ' (' + user.email + ')'}"
+                                                    th:data-id="${user.id}"></option>
+                                        </datalist>
+                                    </div>
+
+                                    <!-- Statistics Cards in a horizontal layout for smaller screens -->
+                                    <div class="row g-3 d-lg-none" id="statisticsMobile">
+                                        <!-- Nội dung sẽ được render bằng JS -->
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Statistics Section -->
+                            <div class="col-lg-8" id="statisticsSection">
+                                <div class="row">
+                                    <!-- Chart -->
+                                    <div class="col-lg-7">
+                                        <div style="height: 220px">
+                                            <canvas id="certificatePieChart"></canvas>
+                                        </div>
+                                        <div class="text-center mt-2" id="chartText">
+                                            <!-- Nội dung sẽ được render bằng JS -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Statistics Cards for larger screens -->
+                                    <div class="col-lg-5 d-none d-lg-block" id="statisticsDesktop">
+                                        <!-- Nội dung sẽ được render bằng JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Card -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm rounded">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-filter me-2"></i>Filter Achievements
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="filterForm" method="get" class="row g-3">
+                            <input type="hidden" name="userId" id="filterUserId"/>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Course Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-book"></i></span>
+                                    <input type="text" class="form-control" name="courseNameFilter"
+                                           placeholder="Search courses..."/>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-semibold">Certificate</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-certificate"></i></span>
+                                    <select class="form-select" name="certifiedFilter">
+                                        <option value="">All</option>
+                                        <option value="true">Certified</option>
+                                        <option value="false">Not Certified</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-semibold">Min Score</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-star"></i></span>
+                                    <input type="number" class="form-control" name="minScoreFilter" step="0.1" min="0"
+                                           max="10" placeholder="0.0"/>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Sort By</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-sort"></i></span>
+                                    <select class="form-select" name="sortBy">
+                                        <option value="completionDate">Completion Date</option>
+                                        <option value="score">Score</option>
+                                        <option value="course.name">Course Name</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-semibold">Order</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-arrow-down-up"></i></span>
+                                    <select class="form-select" name="sortDir">
+                                        <option value="asc">Ascending</option>
+                                        <option value="desc" selected>Descending</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12 text-end mt-4">
+                                <button type="button" class="btn btn-outline-secondary me-2" id="resetFilters">
+                                    <i class="fas fa-redo me-2"></i>Reset
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-2"></i>Apply Filters
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Print and Export Buttons -->
+        <div class="row mb-4">
+            <div class="col-12 text-end">
+                <a onclick="printAchievements()" class="btn btn-outline-secondary me-2" title="Print">
+                    <i class="fas fa-print"></i>
+                </a>
+                <a id="exportButton" th:href="@{/achievements/export}" class="btn btn-outline-secondary" title="Export">
+                    <i class="fas fa-file-excel"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Achievement List -->
+        <div class="row" id="achievementList">
+            <!-- Nội dung sẽ được render bằng JS -->
+        </div>
+        <div class="alert alert-info text-center rounded shadow-sm mt-4" id="noAchievements" style="display: none">
+            <i class="fas fa-info-circle me-2 fa-lg"></i>
+            <span class="fw-medium">No achievements match the search criteria.</span>
+        </div>
+
+        <!-- Pagination -->
+        <div class="row mt-4" id="paginationSection">
+            <!-- Nội dung sẽ được render bằng JS -->
+        </div>
+    </div>
+    <script th:src="@{/js/achievements/achievement.js}"></script>
+</div>

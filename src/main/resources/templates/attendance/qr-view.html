@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>QR Code Attendance</title>
+</head>
+<body>
+<!-- Fragment chứa nội dung tab QR -->
+<div th:fragment="qr-content">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-qrcode me-2"></i>Quản lý mã QR điểm danh</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="alert alert-info">
+                                <p><i class="fas fa-info-circle me-2"></i>Tạo mã QR code riêng cho từng học viên để điểm danh nhanh chóng</p>
+                                <p>QR code có hiệu lực trong <strong>60 phút</strong> sau khi tạo và chỉ sử dụng được 1 lần</p>
+                                <p class="mb-0">Học viên sẽ cần đợi <strong>60 giây</strong> sau khi quét mã QR trước khi có thể xác nhận điểm danh</p>
+                            </div>
+
+                            <form id="generateQRForm" class="mt-3">
+                                <input type="hidden" id="qrClassId" th:value="${classInfo != null ? classInfo.id : ''}">
+                                <input type="hidden" id="qrDate" th:value="${date != null ? #temporals.format(date, 'yyyy-MM-dd') : ''}">
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" id="generateQRButton" class="btn btn-primary">
+                                        <i class="fas fa-sync-alt me-2"></i>Tạo mã QR điểm danh
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title">Hướng dẫn sử dụng</h5>
+                                    <ol class="mb-0">
+                                        <li>Nhấn nút "Tạo mã QR điểm danh" để tạo mã QR cho tất cả học viên</li>
+                                        <li>Mỗi học viên sẽ có mã QR riêng, không dùng chung được</li>
+                                        <li>Học viên quét mã QR bằng điện thoại để điểm danh</li>
+                                        <li>Học viên sẽ phải đợi 60 giây trước khi nhấn xác nhận điểm danh</li>
+                                        <li>Bạn có thể in tất cả mã QR hoặc từng mã riêng lẻ</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Khu vực hiển thị QR Codes -->
+    <div id="qrCodesContainer">
+        <!-- Hiệu ứng loading -->
+        <div id="qrLoadingIndicator" style="display: none;" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tạo mã QR...</span>
+            </div>
+            <p class="mt-3">Đang tạo mã QR điểm danh, vui lòng đợi...</p>
+        </div>
+
+        <!-- Danh sách mã QR -->
+        <div id="qrCodeList" class="row g-3">
+            <!-- QR codes sẽ được thêm vào đây bằng JavaScript -->
+        </div>
+
+        <!-- Hiển thị khi chưa có QR code -->
+        <div id="noQRMessage" class="text-center py-5">
+            <i class="fas fa-qrcode fa-3x text-muted mb-3 d-block"></i>
+            <h4>Chưa có mã QR nào được tạo</h4>
+            <p>Nhấn nút "Tạo mã QR điểm danh" để bắt đầu</p>
+        </div>
+    </div>
+
+    <!-- Nút in tất cả QR code -->
+    <div id="qrControlButtons" class="mt-4 text-center" style="display: none;">
+        <button id="printAllQRButton" class="btn btn-success btn-lg">
+            <i class="fas fa-print me-2"></i>In tất cả mã QR
+        </button>
+    </div>
+
+    <!-- JavaScript xử lý QR code -->
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateQRForm = document.getElementById('generateQRForm');
+            const qrLoadingIndicator = document.getElementById('qrLoadingIndicator');
+            const qrCodeList = document.getElementById('qrCodeList');
+            const noQRMessage = document.getElementById('noQRMessage');
+            const qrControlButtons = document.getElementById('qrControlButtons');
+            const printAllQRButton = document.getElementById('printAllQRButton');
+
+            if (generateQRForm) {
+                generateQRForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const classId = document.getElementById('qrClassId').value;
+                    const date = document.getElementById('qrDate').value;
+
+                    if (!classId || !date) {
+                        showToast('Lỗi', 'Không tìm thấy thông tin lớp học hoặc ngày điểm danh', 'error');
+                        return;
+                    }
+
+                    // Hiển thị loading
+                    qrLoadingIndicator.style.display = 'block';
+                    noQRMessage.style.display = 'none';
+                    qrCodeList.innerHTML = '';
+                    qrControlButtons.style.display = 'none';
+
+                    // Gọi API tạo QR code
+                    fetch(`/attendance/qr/generate?classId=${classId}&date=${date}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            qrLoadingIndicator.style.display = 'none';
+
+                            if (data && data.length > 0) {
+                                // Hiển thị danh sách QR code
+                                renderQRCodes(data);
+                                qrControlButtons.style.display = 'block';
+                            } else {
+                                noQRMessage.style.display = 'block';
+                                showToast('Thông báo', 'Không có học viên nào trong lớp để tạo mã QR', 'error');
+                            }
+                        })
+                        .catch(error => {
+                            qrLoadingIndicator.style.display = 'none';
+                            noQRMessage.style.display = 'block';
+                            showToast('Lỗi', 'Không thể tạo mã QR: ' + error.message, 'error');
+                        });
+                });
+
+                // Xử lý sự kiện in tất cả QR code
+                if (printAllQRButton) {
+                    printAllQRButton.addEventListener('click', function() {
+                        window.print();
+                    });
+                }
+            }
+
+            // Hàm hiển thị danh sách QR code
+            function renderQRCodes(tokens) {
+                qrCodeList.innerHTML = '';
+
+                tokens.forEach(token => {
+                    const qrCard = document.createElement('div');
+                    qrCard.className = 'col-md-4 col-lg-3 mb-4';
+
+                    // Định dạng thời gian hết hạn
+                    const expiresAt = new Date(token.expiresAt);
+                    const formattedExpiresAt = expiresAt.toLocaleTimeString('vi-VN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+
+                    // Định dạng thời gian tạo (nếu có)
+                    let createdInfo = '';
+                    if (token.createdAt) {
+                        const createdAt = new Date(token.createdAt);
+                        const formattedCreatedAt = createdAt.toLocaleTimeString('vi-VN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        });
+                        createdInfo = `<div>Tạo lúc: ${formattedCreatedAt}</div>`;
+                    }
+
+                    qrCard.innerHTML = `
+                        <div class="card qr-card">
+                            <div class="card-header">
+                                <h5 class="card-title">${token.studentName}</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                ${token.qrCodeImageUrl ?
+                        `<img src="${token.qrCodeImageUrl}" class="img-fluid" style="max-width: 200px;" alt="QR Code">` :
+                        `<div class="alert alert-warning">Không thể tạo mã QR</div>`
+                    }
+                            </div>
+                            <div class="card-footer">
+                                ${createdInfo}
+                                <div>Hết hạn: ${formattedExpiresAt}</div>
+                                <div class="mt-2 no-print">
+                                    <button class="btn btn-sm btn-outline-primary w-100 print-single-qr" data-student-id="${token.studentId}">
+                                        <i class="fas fa-print me-1"></i> In mã QR này
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    qrCodeList.appendChild(qrCard);
+                });
+
+                // Thêm event listener cho các nút in riêng lẻ
+                document.querySelectorAll('.print-single-qr').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const studentId = this.getAttribute('data-student-id');
+                        printSingleQR(studentId);
+                    });
+                });
+            }
+
+            // Hàm in một mã QR riêng lẻ
+            function printSingleQR(studentId) {
+                // Ẩn tất cả QR cards
+                const allQRCards = document.querySelectorAll('.qr-card');
+                allQRCards.forEach(card => {
+                    card.parentElement.style.display = 'none';
+                });
+
+                // Hiển thị card được chọn
+                const selectedCard = document.querySelector(`.print-single-qr[data-student-id="${studentId}"]`).closest('.col-md-4');
+                if (selectedCard) {
+                    selectedCard.style.display = 'block';
+                }
+
+                // In
+                window.print();
+
+                // Hiển thị lại tất cả cards
+                allQRCards.forEach(card => {
+                    card.parentElement.style.display = 'block';
+                });
+            }
+        });
+    </script>
+</div>
+
+<!-- CSS cho in ấn -->
+<style>
+    @media print {
+        /* Ẩn các thành phần không cần thiết khi in */
+        .no-print,
+        .nav-tabs,
+        .card-header,
+        .btn-primary,
+        .btn-secondary,
+        .footer,
+        .alert,
+        form,
+        .print-single-qr {
+            display: none !important;
+        }
+
+        /* Định dạng QR cards khi in */
+        .qr-card {
+            page-break-inside: avoid;
+            box-shadow: none;
+            border: 1px solid #ddd;
+        }
+
+        /* Hiển thị QR cards theo grid */
+        .col-md-4, .col-lg-3 {
+            width: 50%;
+            float: left;
+        }
+    }
+</style>
+</body>
+</html>

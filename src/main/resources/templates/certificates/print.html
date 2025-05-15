@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate List - Print</title>
+    <style>
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body {
+                margin: 0;
+                padding: 10mm;
+            }
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body onload="window.print()">
+<div class="container">
+    <h2 class="text-center mb-4">Certificate List</h2>
+
+    <!-- Filter Info (optional, hidden in print) -->
+    <div class="mb-3 no-print">
+        <p th:if="${courseId != null}">Course ID: <span th:text="${courseId}"></span></p>
+        <p th:if="${userId != null}">User ID: <span th:text="${userId}"></span></p>
+        <p th:if="${searchQuery != ''}">Search Query: <span th:text="${searchQuery}"></span></p>
+    </div>
+
+    <!-- Certificates Table -->
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>User</th>
+            <th>Course</th>
+            <th>Awarded Date</th>
+            <th>Email</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(certificates)}">
+            <td colspan="6" class="text-center">No Certificates Found</td>
+        </tr>
+        <tr th:each="certificate, iterStat : ${certificates}">
+            <td th:text="${iterStat.count}"></td>
+            <td th:text="${certificate.name}"></td>
+            <td th:text="${certificate.user?.username}"></td>
+            <td th:text="${certificate.course?.name}"></td>
+            <td th:text="${certificate.awardedDate}"></td>
+            <td th:text="${certificate.user?.email}"></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- Back Button (hidden in print) -->
+    <div class="text-center no-print">
+        <a th:href="@{/certificates(courseId=${courseId}, userId=${userId}, searchQuery=${searchQuery})}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+<script>
+    // Auto-trigger print dialog on page load
+    window.onload = function() {
+        window.print();
+    }
+</script>
+</body>
+</html>

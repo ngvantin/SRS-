@@ -1,0 +1,103 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="container mt-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <!-- Header -->
+            <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+                <i class="bi bi-plus-circle me-2 fs-4"></i>
+                <h1 class="mb-0 fw-bold">Create Topic</h1>
+            </div>
+
+            <div class="card-body">
+                <!-- Error Message -->
+                <div th:if="${error}" class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                </div>
+
+                <form th:action="@{/topics}" method="post">
+                    <!-- Select Course -->
+                    <div class="mb-4">
+                        <label for="course" class="form-label fw-semibold">
+                            <i class="bi bi-book me-2"></i>Select Course
+                        </label>
+                        <select class="form-select border-0 shadow-sm rounded-3" id="course" name="courseId" required>
+                            <option value="">Choose a Course</option>
+                            <option th:each="course : ${courses}" th:value="${course.id}" th:text="${course.name}"></option>
+                        </select>
+                    </div>
+
+                    <div id="input-container">
+                        <div class="mb-4 p-3 bg-light rounded shadow-sm border">
+                            <label for="topicName0" class="form-label fw-semibold">
+                                <i class="bi bi-card-text me-2"></i>Topic Name
+                            </label>
+                            <input type="text" class="form-control border-0 shadow-sm rounded-3" id="topicName0"
+                                   name="topicNames" placeholder="Enter topic name" required>
+                        </div>
+                    </div>
+
+                    <button type="button" id="add-input-btn" class="btn btn-secondary mb-3">
+                        <i class="bi bi-plus-lg"></i> Add Another Topic
+                    </button>
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-success px-4 me-3 shadow-lg rounded-3">
+                            <i class="bi bi-save me-2"></i>Save
+                        </button>
+                        <a href="/topics" class="btn btn-outline-secondary px-4 shadow-lg rounded-3">
+                            <i class="bi bi-arrow-left me-2"></i>Back to List
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let topicCount = 1;
+        document.getElementById("add-input-btn").addEventListener("click", function () {
+            let container = document.getElementById("input-container");
+
+            let newInputGroup = document.createElement("div");
+            newInputGroup.classList.add("mb-4", "p-3", "bg-light", "rounded", "shadow-sm", "border");
+
+            let newLabel = document.createElement("label");
+            newLabel.setAttribute("for", `topicName${topicCount}`);
+            newLabel.classList.add("form-label", "fw-semibold");
+            newLabel.innerHTML = '<i class="bi bi-card-text me-2"></i>Topic Name';
+
+            let newInput = document.createElement("input");
+            newInput.type = "text";
+            newInput.id = `topicName${topicCount}`;
+            newInput.name = "topicNames";
+            newInput.classList.add("form-control", "border-0", "shadow-sm", "rounded-3", "mb-2");
+            newInput.placeholder = "Enter topic name";
+            newInput.required = true;
+
+            let removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.classList.add("btn", "btn-danger", "d-flex", "align-items-center");
+
+            let removeIcon = document.createElement("i");
+            removeIcon.classList.add("bi", "bi-trash", "me-2");
+
+            let removeText = document.createTextNode("Remove Topic");
+
+            removeBtn.appendChild(removeIcon);
+            removeBtn.appendChild(removeText);
+
+            removeBtn.addEventListener("click", function () {
+                container.removeChild(newInputGroup);
+            });
+
+            newInputGroup.appendChild(newLabel);
+            newInputGroup.appendChild(newInput);
+            newInputGroup.appendChild(removeBtn);
+            container.appendChild(newInputGroup);
+
+            topicCount++;
+        });
+    </script>
+
+</div>

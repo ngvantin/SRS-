@@ -1,0 +1,142 @@
+<div class="px-5" th:fragment="content">
+    <div class="container mt-4">
+        <h2 class="text-center">Edit Question</h2>
+
+        <form id="questionForm" th:action="@{/questions/edit/{id}(id=${question.id})}" method="post" th:object="${question}">
+            <div class="card shadow-sm mt-4 question-card">
+                <div class="card-body">
+                    <input type="hidden" th:field="*{id}">
+                    <div class="mb-3">
+                        <label class="form-label">Question Text</label>
+                        <textarea id="questionText" th:field="*{text}" class="form-control" rows="5"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Question Type</label>
+                        <select th:field="*{type}" class="form-select question-type" required>
+                            <option th:each="type : ${types}" th:value="${type}" th:text="${type}" th:selected="${type == question.type}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Points</label>
+                        <input type="number" th:field="*{points}" class="form-control" placeholder="Enter points" required>
+                    </div>
+
+                    <div class="answerOptionContainer">
+                        <div th:each="answer, answerIndex : *{answers}" class="input-group mb-2 answer-group">
+                            <input type="hidden" th:field="*{answers[__${answerIndex.index}__].id}">
+                            <div class="input-group-text">
+                                <input class="form-check-input mt-0" type="checkbox"
+                                       th:name="|answers[__${answerIndex.index}__].isCorrect|"
+                                       th:checked="${answer.isCorrect}" value="true"
+                                       onchange="toggleHiddenInput(this)">
+                                <input type="hidden" class="is-correct-hidden"
+                                       th:name="|answers[__${answerIndex.index}__].isCorrect|"
+                                       value="false">
+                            </div>
+                            <input type="text" th:field="*{answers[__${answerIndex.index}__].text}"
+                                   class="form-control" placeholder="Answer text" required>
+                            <button type="button" class="btn btn-outline-secondary removeOptionBtn" title="Remove answer option">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary mt-2 addAnswerOptionBtn" title="Add answer option">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-3">
+                <button type="submit" class="btn btn-success" title="Save">
+                    <i class="bi bi-check-circle"></i> Save
+                </button>
+                <a th:href="@{/quizzes/edit/{id}(id=${quizId})}" class="btn btn-secondary" title="Back to quiz edit">
+                    <i class="bi bi-arrow-left"></i> Back to Quiz Edit
+                </a>
+            </div>
+        </form>
+        <script src="https://cdn.ckeditor.com/ckeditor5/40.0.0/classic/ckeditor.js"></script>
+        <script th:inline="javascript">
+            const questionCard = document.querySelector('.question-card');
+            const answerOptionContainer = questionCard.querySelector('.answerOptionContainer');
+
+            // Thêm đáp án mới
+            questionCard.addEventListener('click', function (event) {
+                if (event.target.classList.contains('addAnswerOptionBtn')) {
+                    const answerIndex = answerOptionContainer.querySelectorAll('.answer-group').length;
+                    const answerCard = `
+                        <div class="input-group mb-2 answer-group">
+                            <div class="input-group-text">
+                                <input class="form-check-input mt-0" type="checkbox"
+                                       name="*{answers[${answerIndex}].isCorrect}"
+                                       value="true" onchange="toggleHiddenInput(this)">
+                                <input type="hidden" class="is-correct-hidden"
+                                       name="*{answers[${answerIndex}].isCorrect}"
+                                       value="false">
+                            </div>
+                            <input type="text"
+                                   name="*{answers[${answerIndex}].text}"
+                                   class="form-control" placeholder="Answer text" required>
+                            <button type="button" class="btn btn-outline-secondary removeOptionBtn" title="Remove answer option">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    answerOptionContainer.insertAdjacentHTML('beforeend', answerCard);
+                }
+
+                // Xóa đáp án
+                if (event.target.closest('.removeOptionBtn')) {
+                    event.target.closest('.answer-group').remove();
+                }
+            });
+
+            // Xử lý checkbox isCorrect
+            function toggleHiddenInput(checkbox) {
+                const answerGroup = checkbox.closest('.answer-group');
+                let hiddenInput = answerGroup.querySelector('.is-correct-hidden');
+
+                if (checkbox.checked) {
+                    if (hiddenInput) {
+                        hiddenInput.remove(); // Xóa input ẩn khi checkbox được chọn
+                    }
+                } else {
+                    if (!hiddenInput) {
+                        hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = checkbox.name;
+                        hiddenInput.value = 'false';
+                        hiddenInput.className = 'is-correct-hidden';
+                        answerGroup.querySelector('.input-group-text').appendChild(hiddenInput);
+                    }
+                }
+            }
+
+            let editor;
+            ClassicEditor
+                .create(document.querySelector('#questionText'))
+                .then(newEditor => {
+                    editor = newEditor;
+                    editor.setData(document.querySelector('#questionText').value);
+                })
+                .catch(error => console.error(error));
+
+            function syncCKEditor() {
+                if (editor) {
+                    const data = editor.getData();
+                    document.querySelector('#questionText').value = data;
+                    // Kiểm tra nếu trống thì ngăn submit
+                    if (!data || data.trim() === '') {
+                        alert('Question text is required!');
+                        return false; // Ngăn submit form
+                    }
+                }
+                return true; // Cho phép submit
+            }
+        </script>
+    </div>
+</div>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance Modals</title>
+</head>
+<body>
+<!-- Fragment chứa tất cả các modal cho trang điểm danh -->
+<div th:fragment="attendance-modals">
+    <!-- Modal gửi email -->
+    <div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="emailModalLabel">
+                        <i class="fas fa-paper-plane me-2"></i>Gửi email thông báo
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="emailForm">
+                        <input type="hidden" id="attendanceId" name="attendanceId">
+
+                        <div class="mb-3 row">
+                            <label for="studentName" class="col-sm-3 col-form-label">Học viên:</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control-plaintext" id="studentName" readonly>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 row">
+                            <label for="studentEmail" class="col-sm-3 col-form-label">Email:</label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control-plaintext" id="studentEmail" readonly>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="emailSubject" class="form-label">Tiêu đề:</label>
+                            <input type="text" class="form-control" id="emailSubject" name="subject" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="emailContent" class="form-label">Nội dung:</label>
+                            <textarea class="form-control" id="emailContent" name="content" rows="8" required></textarea>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>Bạn có thể sử dụng các biến:
+                                <code>{studentName}</code> - tên học viên,
+                                <code>{className}</code> - tên lớp,
+                                <code>{classCode}</code> - mã lớp,
+                                <code>{date}</code> - ngày điểm danh
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" id="sendEmailButton">
+                        <i class="fas fa-paper-plane me-1"></i>Gửi email
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal para enviar email a estudiantes seleccionados de la clase -->
+    <div class="modal fade" id="classEmailModal" tabindex="-1" aria-labelledby="classEmailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="classEmailModalLabel">
+                        <i class="fas fa-envelope-open-text me-2"></i>Gửi email cho lớp
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                    <form id="classEmailForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="classEmailSubject" class="form-label">Tiêu đề:</label>
+                                    <input type="text" class="form-control" id="classEmailSubject" name="subject" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Lựa chọn nhanh:</label>
+                                    <div class="d-flex">
+                                        <button type="button" class="btn btn-outline-primary me-2" id="selectAllStudentsBtn">
+                                            <i class="fas fa-users me-1"></i>Chọn tất cả
+                                        </button>
+                                        <button type="button" class="btn btn-outline-warning me-2" id="selectAbsentStudentsBtn">
+                                            <i class="fas fa-user-minus me-1"></i>Chỉ chọn sinh viên vắng
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger" id="clearSelectionBtn">
+                                            <i class="fas fa-times me-1"></i>Bỏ chọn tất cả
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="classEmailContent" class="form-label">Nội dung:</label>
+                            <textarea class="form-control" id="classEmailContent" name="content" rows="6" required></textarea>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>Bạn có thể sử dụng các biến:
+                                <code>{studentName}</code> - tên học viên,
+                                <code>{className}</code> - tên lớp,
+                                <code>{classCode}</code> - mã lớp,
+                                <code>{date}</code> - ngày điểm danh
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Danh sách sinh viên:</label>
+                            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th style="width: 50px">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="checkAllStudents">
+                                                <label class="form-check-label" for="checkAllStudents"></label>
+                                            </div>
+                                        </th>
+                                        <th style="width: 50px">#</th>
+                                        <th>Họ và tên</th>
+                                        <th>Email</th>
+                                        <th style="width: 120px">Trạng thái</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="studentEmailList">
+                                    <!-- Lista de estudiantes generada dinámicamente por JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="form-text text-end">
+                                <span id="selectedStudentCount">0</span> sinh viên được chọn
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" id="sendClassEmailButton">
+                        <i class="fas fa-paper-plane me-1"></i>Gửi email
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal kết quả gửi email -->
+    <div class="modal fade" id="emailResultModal" tabindex="-1" aria-labelledby="emailResultModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" id="emailResultHeader">
+                    <h5 class="modal-title" id="emailResultModalLabel">Kết quả gửi email</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="emailResultBody">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal xóa điểm danh -->
+    <div class="modal fade" id="deleteAttendanceModal" tabindex="-1" aria-labelledby="deleteAttendanceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteAttendanceModalLabel">Xác nhận xóa điểm danh</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn xóa tất cả dữ liệu điểm danh cho lớp <strong th:text="${classInfo != null ? classInfo.name : ''}"></strong> vào ngày <strong th:text="${date != null ? #temporals.format(date, 'dd/MM/yyyy') : ''}"></strong>?</p>
+                    <p class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Hành động này không thể hoàn tác!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <form method="post" th:action="@{/attendance/delete-by-date}">
+                        <input type="hidden" name="classId" th:value="${classInfo != null ? classInfo.id : ''}">
+                        <input type="hidden" name="date" th:value="${date != null ? #temporals.format(date, 'yyyy-MM-dd') : ''}">
+                        <button type="submit" class="btn btn-danger">Xóa</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal xác nhận vắng mặt -->
+    <div class="modal fade" id="absentConfirmModal" tabindex="-1" aria-labelledby="absentConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="absentConfirmModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Cảnh báo đánh dấu vắng mặt
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-exclamation-circle text-danger" style="font-size: 3rem;"></i>
+                    </div>
+                    <p class="text-center">Bạn có chắc chắn muốn đánh dấu học viên <strong id="studentNameInModal"></strong> vắng mặt?</p>
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-info-circle me-2"></i>Thao tác này sẽ ảnh hưởng đến tỷ lệ tham dự của lớp học.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" id="cancelAbsentBtn">Hủy</button>
+                    <button type="button" class="btn btn-danger" id="confirmAbsentBtn">
+                        <i class="fas fa-check me-2"></i>Xác nhận vắng mặt
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thêm modal import vào cuối phần modals.html -->
+    <!-- Modal Import từ Excel -->
+    <div class="modal fade" id="importAttendanceModal" tabindex="-1" aria-labelledby="importAttendanceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="importAttendanceModalLabel">Import điểm danh từ Excel</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Import điểm danh cho lớp <strong th:text="${classInfo.name}"></strong> ngày <strong th:text="${#temporals.format(date, 'dd/MM/yyyy')}"></strong>
+                    </div>
+
+                    <form id="importAttendanceForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label">Bước 1: Tải mẫu Excel điểm danh</label>
+                            <div>
+                                <a th:href="@{/attendance/import-template/{classId}/{date}(classId=${classInfo.id}, date=${date})}"
+                                   class="btn btn-outline-primary">
+                                    <i class="fas fa-download"></i> Tải mẫu Excel
+                                </a>
+                            </div>
+                            <small class="text-muted">Tải mẫu Excel và điền thông tin điểm danh</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="attendanceFile" class="form-label">Bước 2: Chọn file Excel đã điền thông tin</label>
+                            <input type="file" class="form-control" id="attendanceFile" name="file" accept=".xls,.xlsx" required>
+                            <small class="text-muted">Chỉ chấp nhận file Excel (.xls, .xlsx)</small>
+                        </div>
+
+                        <input type="hidden" id="importClassId" th:value="${classInfo.id}">
+                        <input type="hidden" id="importDate" th:value="${date}">
+
+                        <div class="alert alert-warning">
+                            <p><strong>Lưu ý:</strong></p>
+                            <ul>
+                                <li>Không thay đổi ID, tên đăng nhập, họ tên, email của sinh viên</li>
+                                <li>Chỉ cập nhật các cột: Điểm danh, Vắng có phép, Giờ điểm danh, Ghi chú</li>
+                                <li>Import sẽ ghi đè lên dữ liệu điểm danh hiện tại</li>
+                            </ul>
+                        </div>
+                    </form>
+
+                    <div id="importSpinner" class="text-center d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Đang xử lý...</span>
+                        </div>
+                        <p class="mt-2">Đang import dữ liệu, vui lòng đợi...</p>
+                    </div>
+
+                    <div id="importResult" class="alert d-none">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="btnSubmitImport">Import dữ liệu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

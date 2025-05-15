@@ -1,0 +1,53 @@
+<div class="px-5" th:fragment="content">
+<div class="px-5 py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <h2 class="mb-5 text-center text-primary">Select a Source to Create Questions</h2>
+
+                <!-- Các tùy chọn nguồn -->
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    <!-- From PDF -->
+                    <div class="col">
+                        <a href="/quizzes/create/from-pdf" class="text-decoration-none">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="me-4">
+                                        <i class="bi bi-file-earmark-pdf-fill text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="card-title">From PDF</h5>
+                                        <p class="card-text">Create a quiz based on your PDF document</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- From Text -->
+                    <div class="col">
+                        <a href="/questions/from-text" class="text-decoration-none">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="me-4">
+                                        <i class="bi bi-text-paragraph text-success"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="card-title">From Text</h5>
+                                        <p class="card-text">Create a quiz based on your text input</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Nút Back -->
+                <div class="d-flex justify-content-center mt-5">
+                    <a href="/quizzes" class="btn btn-custom">Back to Quizzes</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>>

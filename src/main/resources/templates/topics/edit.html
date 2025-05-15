@@ -1,0 +1,55 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+  <div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-4">
+      <!-- Header -->
+      <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+        <i class="bi bi-pencil-square me-2 fs-4"></i>
+        <h1 class="mb-0 fw-bold">Edit Topic</h1>
+      </div>
+
+      <div class="card-body">
+        <!-- Error Message -->
+        <div th:if="${error}" class="alert alert-danger d-flex align-items-center" role="alert">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <span th:text="${error}"></span>
+        </div>
+
+        <form th:action="@{/topics/edit/{id}(id=${topic.topicId})}" method="post" th:object="${topic}">
+          <input type="hidden" th:field="*{topicId}" />
+
+          <!-- Select Course -->
+          <div class="mb-4">
+            <label for="course" class="form-label fw-semibold">
+              <i class="bi bi-book me-2"></i>Select Course
+            </label>
+            <select class="form-select border-0 shadow-sm rounded-3" id="course" name="course.id" required>
+              <option value="">Choose a Course</option>
+              <option th:each="course : ${courses}" th:value="${course.id}"
+                      th:text="${course.name}" th:selected="${course.id == topic.course.id}">
+              </option>
+            </select>
+          </div>
+
+          <!-- Topic Name -->
+          <div class="mb-4">
+            <label for="topicName" class="form-label fw-semibold">
+              <i class="bi bi-card-text me-2"></i>Topic Name
+            </label>
+            <input type="text" class="form-control border-0 shadow-sm rounded-3" id="topicName"
+                   name="topicName" th:field="*{topicName}" placeholder="Enter topic name" required>
+          </div>
+
+          <!-- Buttons -->
+          <div class="d-flex justify-content-end mt-4">
+            <button type="submit" class="btn btn-primary px-4 me-3 shadow-lg rounded-3">
+              <i class="bi bi-save me-2"></i>Update
+            </button>
+            <a href="/topics" class="btn btn-outline-secondary px-4 shadow-lg rounded-3">
+              <i class="bi bi-arrow-left me-2"></i>Back to List
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

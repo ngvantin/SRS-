@@ -1,0 +1,265 @@
+<div class="px-5" th:fragment="content">
+  <link rel="stylesheet" th:href="@{/css/activities/statistics.css}" />
+  <div class="card-gradient-header text-center py-3">
+    <h4 class="mb-0 fw-bold">
+      <i class="fas fa-chart-line me-2"></i>Activities Statistics
+    </h4>
+  </div>
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <div class="row align-items-center">
+            <!-- Date Filter Section -->
+            <div class="col-md-4">
+              <form
+                th:action="@{/activities/statistics}"
+                method="get"
+                class="d-flex gap-2"
+              >
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-light">
+                    <i class="fas fa-filter text-primary"></i>
+                  </span>
+                  <input
+                    type="datetime-local"
+                    class="form-control"
+                    name="startDate"
+                    th:value="${selectedStartDate != null ?
+                  #temporals.format(selectedStartDate,
+                  'yyyy-MM-dd''T''HH:mm:ss') : ''}"
+                  />
+                </div>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text bg-light">
+                    <i class="fas fa-filter text-primary"></i>
+                  </span>
+                  <input
+                    type="datetime-local"
+                    class="form-control"
+                    name="endDate"
+                    th:value="${selectedEndDate != null ? #temporals.format(selectedEndDate, 'yyyy-MM-dd''T''HH:mm:ss') : ''}"
+                  />
+                </div>
+              </form>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="col-md-8">
+              <div class="d-flex justify-content-end gap-3">
+                <div class="stat-card bg-light rounded p-3">
+                  <i class="fas fa-chart-line text-primary me-2"></i>
+                  <span class="stat-label">Total Activities:</span>
+                  <span class="stat-value fw-bold" th:text="${totalActivities}"
+                    >0</span
+                  >
+                </div>
+              
+
+                <div class="stat-card bg-light rounded p-3">
+                  <i class="fas fa-clock text-success me-2"></i>
+                  <span class="stat-label">Today's Activities:</span>
+                  <span class="stat-value fw-bold" th:text="${todaysActivities}"
+                    >0</span
+                  >
+                </div>
+
+                <div class="stat-card bg-light rounded p-3">
+                  <i class="fas fa-user-check text-info me-2"></i>
+                  <span class="stat-label">Unique Logins:</span>
+                  <span
+                    class="stat-value fw-bold"
+                    th:text="${uniqueLoginsToday}"
+                    >0</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body p-4">
+    <div class="row">
+      <div class="col-md-6 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">Method Trends Over Time</h5>
+            <div class="chart-container">
+              <canvas id="lineChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">
+              Activity Distribution by Hour
+            </h5>
+            <div class="chart-container">
+              <canvas id="hourlyStats"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">Daily Activity Summary</h5>
+            <div class="chart-container">
+              <canvas id="dailyChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">
+              Weekly Activity Overview
+            </h5>
+            <div class="chart-container">
+              <canvas id="weeklyChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">
+              Monthly Activity Analysis
+            </h5>
+            <div class="chart-container">
+              <canvas id="monthlyChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">Daily Login Statistics</h5>
+            <div class="chart-container">
+              <canvas id="loginsByDayChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">Most Accessed Paths</h5>
+            <div class="chart-container">
+              <canvas id="topAccessedPathsChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">Most Active Users</h5>
+            <div class="chart-container">
+              <canvas id="topActiveUsersChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">
+              Activity Types Distribution
+            </h5>
+            <div class="pie-chart-container">
+              <canvas id="pieChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">
+              Browser Usage Statistics
+            </h5>
+            <div class="pie-chart-container">
+              <canvas id="browserChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">
+              Error & Anomaly Statistics by Hour
+            </h5>
+            <div class="chart-container">
+              <canvas id="errorAndAnomalyStats"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">
+              Error & Anomaly Statistics by Day
+            </h5>
+            <div class="chart-container">
+              <canvas id="errorAndAnomalyStatsByDay"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">
+              Hourly Access Comparison
+            </h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <input type="date" class="form-control w-auto" id="datePicker" />
+              <div id="selectedDatesContainer" class="mb-0 ms-3"></div>
+            </div>
+            <div class="large-chart-container">
+              <canvas id="hourlyAccessChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <div id="heatmapContainer">
+          <canvas id="heatmapCanvas" height="400"></canvas>
+        </div>
+        <div id="heatmapNativeContainer"></div>
+      </div>
+    </div>
+  </div>
+  <script th:inline="javascript">
+    window.hourlyAccessStats = /*[[${hourlyAccessStats}]]*/ {};
+    window.monthlyStats = /*[[${monthlyStats}]]*/ {};
+    window.weeklyStats = /*[[${weeklyStats}]]*/ {};
+    window.dailyStats = /*[[${dailyStats}]]*/ {};
+    window.hourlyStats = /*[[${hourlyStats}]]*/ {};
+    window.methodStats = /*[[${methodStats}]]*/ {};
+    window.typeStats = /*[[${typeStats}]]*/ {};
+    window.loginsByDay = /*[[${loginsByDay}]]*/ {};
+    window.topAccessedPaths = /*[[${topAccessedPaths}]]*/ {};
+    window.topActiveUsers = /*[[${topActiveUsers}]]*/ {};
+    window.browserStats = /*[[${browserStats}]]*/ {};
+    window.heatmapData = /*[[${heatmapData}]]*/ {};
+    window.totalRecords = /*[[${totalRecords}]]*/ 0;
+  </script>
+  <script th:src="@{/js/activities/statistics.js}"></script>
+</div>

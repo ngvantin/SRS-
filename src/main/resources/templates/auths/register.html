@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head th:replace="~{fragments/header :: header}">
+</head>
+<body class="bg-light">
+<link rel="stylesheet" th:href="@{/css/auths/register.css}" href="/css/auths/register.css">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                    <div class="row g-0">
+                        <!-- Intro Section -->
+                        <div class="col-md-5 d-none d-md-block">
+                            <div class="h-100 p-5 text-white bg-primary-gradient">
+                                <div class="d-flex flex-column justify-content-between h-100">
+                                    <div>
+                                        <h2 class="fw-bold mb-4">Welcome!</h2>
+                                        <p class="lead">Join thousands of learners who are developing their skills every day.</p>
+                                        
+                                        <ul class="list-unstyled mt-4">
+                                            <li class="mb-2"><i class="fas fa-check-circle text-white me-2"></i> High-quality courses</li>
+                                            <li class="mb-2"><i class="fas fa-check-circle text-white me-2"></i> Top instructors</li>
+                                            <li class="mb-2"><i class="fas fa-check-circle text-white me-2"></i> Supportive learning community</li>
+                                            <li class="mb-2"><i class="fas fa-check-circle text-white me-2"></i> Recognized certificates</li>
+                                            <li class="mb-2"><i class="fas fa-check-circle text-white me-2"></i> Learn anytime, anywhere</li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <div class="mt-5">
+                                        <p class="mb-2">Already have an account?</p>
+                                        <a href="/auth/login" class="btn btn-outline-light px-4">Login now</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Registration Form -->
+                        <div class="col-md-7">
+                            <div class="card-body p-4 p-md-5">
+                                <div class="text-center mb-4">
+                                    <img src="/assets/images/fsa.png" alt="Logo" class="img-fluid pulse-animation" style="width: 80px;">
+                                    <h2 class="fw-bold mt-3">Register <span class="animate-character">Account</span></h2>
+                                    <p class="text-muted">Become a member and start your learning journey</p>
+                                </div>
+                                
+                                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <span th:text="${error}"></span>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                                
+                                <form th:action="@{/auth/register}" th:object="${user}" method="post" id="registerForm" class="needs-validation" novalidate>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="firstName" class="form-label fw-semibold">First Name</label>
+                                            <div class="input-group shadow-sm">
+                                                <span class="input-group-text bg-white border-end-0">
+                                                    <i class="fas fa-user text-primary"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-start-0" id="firstName" th:field="*{firstName}" 
+                                                       placeholder="Enter your first name" required>
+                                            </div>
+                                            <div class="invalid-feedback">Please enter your first name</div>
+                                        </div>
+                                        
+                                        <div class="col-md-6 mb-3">
+                                            <label for="lastName" class="form-label fw-semibold">Last Name</label>
+                                            <div class="input-group shadow-sm">
+                                                <span class="input-group-text bg-white border-end-0">
+                                                    <i class="fas fa-user text-primary"></i>
+                                                </span>
+                                                <input type="text" class="form-control border-start-0" id="lastName" th:field="*{lastName}" 
+                                                       placeholder="Enter your last name" required>
+                                            </div>
+                                            <div class="invalid-feedback">Please enter your last name</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label fw-semibold">Email</label>
+                                        <div class="input-group shadow-sm">
+                                            <span class="input-group-text bg-white border-end-0">
+                                                <i class="fas fa-envelope text-primary"></i>
+                                            </span>
+                                            <input type="email" class="form-control border-start-0" id="email" th:field="*{email}" 
+                                                   placeholder="example@domain.com" required>
+                                        </div>
+                                        <div class="invalid-feedback">Please enter a valid email</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="username" class="form-label fw-semibold">Username</label>
+                                        <div class="input-group shadow-sm">
+                                            <span class="input-group-text bg-white border-end-0">
+                                                <i class="fas fa-user-tag text-primary"></i>
+                                            </span>
+                                            <input type="text" class="form-control border-start-0" id="username" th:field="*{username}" 
+                                                   placeholder="Choose username" required>
+                                        </div>
+                                        <div class="invalid-feedback">Username must be at least 4 characters</div>
+                                    </div>
+                                    
+                                    <div class="mb-3 position-relative">
+                                        <label for="password" class="form-label fw-semibold">Password</label>
+                                        <div class="input-group shadow-sm">
+                                            <span class="input-group-text bg-white border-end-0">
+                                                <i class="fas fa-lock text-primary"></i>
+                                            </span>
+                                            <input type="password" class="form-control border-start-0" id="password" th:field="*{password}" 
+                                                   placeholder="Create strong password" required minlength="8">
+                                            <span class="input-group-text bg-white border-start-0 password-toggle" onclick="togglePassword('password')">
+                                                <i class="fas fa-eye" id="passwordToggle"></i>
+                                            </span>
+                                        </div>
+                                        <div class="progress mt-2" style="height: 5px;">
+                                            <div class="progress-bar" id="passwordStrengthBar" role="progressbar" style="width: 0%"></div>
+                                        </div>
+                                        <small class="form-text text-muted" id="passwordFeedback">
+                                            Password must be at least 8 characters
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="mb-3 position-relative">
+                                        <label for="confirmPassword" class="form-label fw-semibold">Confirm Password</label>
+                                        <div class="input-group shadow-sm">
+                                            <span class="input-group-text bg-white border-end-0">
+                                                <i class="fas fa-lock text-primary"></i>
+                                            </span>
+                                            <input type="password" class="form-control border-start-0" id="confirmPassword" name="confirmPassword" 
+                                                   placeholder="Re-enter password" required>
+                                            <span class="input-group-text bg-white border-start-0 password-toggle" onclick="togglePassword('confirmPassword')">
+                                                <i class="fas fa-eye" id="confirmPasswordToggle"></i>
+                                            </span>
+                                        </div>
+                                        <div class="invalid-feedback" id="passwordMatchFeedback">
+                                            Passwords do not match
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-4 form-check">
+                                        <input type="checkbox" class="form-check-input" id="termsCheck" required>
+                                        <label class="form-check-label small" for="termsCheck">
+                                            I agree to the <a href="#" class="text-decoration-none fw-semibold">Terms of Service</a> and 
+                                            <a href="#" class="text-decoration-none fw-semibold">Privacy Policy</a>
+                                        </label>
+                                        <div class="invalid-feedback">You must agree to the terms of service</div>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2 my-4">
+                                        <button type="submit" class="btn btn-primary bg-primary-gradient py-2 fw-bold shadow" id="submitBtn">
+                                            <i class="fas fa-user-plus me-2"></i>Create Account
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="text-center d-md-none">
+                                        <p class="mb-0">Already have an account? 
+                                            <a href="/auth/login" class="text-decoration-none fw-semibold">Login</a>
+                                        </p>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Bootstrap and Font Awesome -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+<script th:src="@{/js/auth/register.js}"></script>
+
+</body>
+</html>

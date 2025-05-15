@@ -1,0 +1,125 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <link href="/css/feedbacks/report-course-feedback-detail.css" rel="stylesheet">
+    <div class="container mt-4">
+        <div class="card shadow-lg border-0 rounded-4">
+            <!-- Header -->
+            <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+                <i class="bi bi-journal-bookmark me-2 fs-4"></i>
+                <h1 class="mb-0 fw-bold">Course Feedback Report</h1>
+            </div>
+
+            <div class="card-body p-4">
+                <!-- Course Details -->
+                <h2 class="fw-semibold mb-3">Course Details</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <label class="form-label fw-semibold mb-0" style="width: 120px; white-space: nowrap;">
+                                <i class="bi bi-hash me-2"></i>ID
+                            </label>
+                            <p th:text="${report.courseId}"></p>
+                        </div>
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <label class="form-label fw-semibold mb-0" style="width: 120px; white-space: nowrap;">
+                                <i class="bi bi-book me-2"></i>Name
+                            </label>
+                            <p th:text="${report.courseName}"></p>
+                        </div>
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <label class="form-label fw-semibold mb-0" style="width: 120px; white-space: nowrap;">
+                                <i class="bi bi-code me-2"></i>Code
+                            </label>
+                            <p th:text="${report.courseCode}"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <label class="form-label fw-semibold mb-0" style="width: 120px; white-space: nowrap;">
+                                <i class="bi bi-file-text me-2"></i>Description
+                            </label>
+                            <p th:text="${report.description}"></p>
+                        </div>
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <label class="form-label fw-semibold mb-0" style="width: 120px; white-space: nowrap;">
+                                <i class="bi bi-person me-2"></i>Instructor
+                            </label>
+                            <p th:text="${report.instructorName}"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feedback List -->
+                <h2 class="fw-semibold mb-3 mt-4">Feedback List</h2>
+                <div class="feedback-list-container" th:classappend="${#lists.size(report.feedbacks) > 1} ? 'scrollable'">
+                    <div th:each="feedback : ${report.feedbacks}">
+                        <div class="card shadow-sm border-0 rounded-3 feedback-card">
+                            <div class="card-body p-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-2 d-flex align-items-center gap-3">
+                                            <label class="form-label fw-semibold mb-0" style="width: 120px; white-space: nowrap;">
+                                                <i class="bi bi-hash me-2"></i>Feedback ID
+                                            </label>
+                                            <p th:text="${feedback.id}"></p>
+                                        </div>
+                                        <div class="mb-2 d-flex align-items-center gap-3">
+                                            <label class="form-label fw-semibold mb-0" style="width: 120px; white-space: nowrap;">
+                                                <i class="bi bi-calendar me-2"></i>Date
+                                            </label>
+                                            <p th:text="${#dates.format(feedback.date, 'yyyy-MM-dd HH:mm:ss')}"></p>
+                                        </div>
+                                        <div class="mb-2 d-flex align-items-center gap-3">
+                                            <label class="form-label fw-semibold mb-0" style="width: 120px; white-space: nowrap;">
+                                                <i class="bi bi-star me-2"></i>Average Rating
+                                            </label>
+                                            <div class="star-rating">
+                                                <span th:if="${feedback.averageRating > 0}"
+                                                      th:each="i : ${#numbers.sequence(1, feedback.averageRating.intValue())}"
+                                                      class="rating-star">★</span>
+                                                <span th:if="${feedback.averageRating > 0 and feedback.averageRating.intValue() < 5}"
+                                                      th:each="i : ${#numbers.sequence(feedback.averageRating.intValue() + 1, 5)}"
+                                                      class="rating-star-unfilled">★</span>
+                                                <span th:if="${feedback.averageRating == 0}"
+                                                      th:each="i : ${#numbers.sequence(1, 5)}"
+                                                      class="rating-star-unfilled">★</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-2">
+                                            <label class="form-label fw-semibold">
+                                                <i class="bi bi-chat-text me-2"></i>Course Comment
+                                            </label>
+                                            <p class="border-0 shadow-sm rounded-3 p-2 bg-light"
+                                               th:text="${feedback.commentCourse} ?: 'No comment provided'"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Action -->
+                                <div class="d-flex justify-content-end">
+                                    <a th:href="@{/feedbacks/courses/{id}(id=${feedback.id})}"
+                                       class="btn btn-sm btn-outline-primary shadow-lg rounded-3">
+                                        <i class="bi bi-eye me-2"></i>View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- No Feedback Message -->
+                <div th:if="${#lists.isEmpty(report.feedbacks)}" class="text-center p-3">
+                    <p class="text-muted">No feedback available for this course.</p>
+                </div>
+
+                <!-- Back Button -->
+                <div class="d-flex justify-content-end mt-4">
+                    <a th:href="@{/feedbacks/report}"
+                       class="btn btn-outline-secondary px-4 shadow-lg rounded-3">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Summary
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

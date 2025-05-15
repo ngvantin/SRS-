@@ -1,0 +1,48 @@
+<div class="px-5" th:fragment="content">
+<div class="container mt-4" >
+  <form th:action="@{/course/topics}" th:object="${topic}" method="post">
+  <h2 class="text-center mt-3">New Topic</h2>
+  <div id="input-container">
+    <!-- Ô input mặc định đầu tiên -->
+    <div class="input-group mb-2">
+      <input type="text" id="topicName" class="form-control" th:field="*{topicName}" placeholder="Enter topic name" required>
+    </div>
+  </div>
+    <!-- Hiển thị lỗi nếu topic đã tồn tại -->
+    <div th:if="${error}" class="alert alert-danger">
+      <span th:text="${error}"></span>
+    </div>
+
+
+    <!--  &lt;!&ndash; Button thêm ô input &ndash;&gt;-->
+<!--  <button id="add-input-btn" class="btn btn-secondary mb-3">Add another topic</button>-->
+
+  <!-- Khu vực chứa Save và Back to Topic List -->
+  <div class="d-flex justify-content-end gap-3">
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="/course/topics" class="btn btn-secondary">Back to List</a>
+  </div>
+  </form>
+
+  <!-- JavaScript để thêm input mới -->
+  <script>
+    document.getElementById("add-input-btn").addEventListener("click", function () {
+        let container = document.getElementById("input-container");
+
+        // Tạo một div mới chứa input
+        let newInputGroup = document.createElement("div");
+        newInputGroup.classList.add("input-group", "mb-2");
+
+        let newInput = document.createElement("input");
+        newInput.type = "text";
+        newInput.classList.add("form-control");
+        newInput.placeholder = "Enter topic name";
+
+        newInputGroup.appendChild(newInput);
+        container.appendChild(newInputGroup);
+    });
+  </script>
+
+</div>
+</div>
+

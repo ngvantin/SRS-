@@ -1,0 +1,93 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+  <div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-4">
+      <!-- Header -->
+      <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+        <i class="bi bi-plus-circle me-2 fs-4"></i>
+        <h1 class="mb-0 fw-bold">Create Delivery Type</h1>
+      </div>
+
+      <div class="card-body">
+        <!-- Error Message -->
+        <div th:if="${error}" class="alert alert-danger d-flex align-items-center" role="alert">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <span th:text="${error}"></span>
+        </div>
+
+        <form th:action="@{/delivery-types}" method="post">
+
+          <div id="input-container">
+            <div class="mb-4 p-3 bg-light rounded shadow-sm border">
+              <label for="name" class="form-label fw-semibold">
+                <i class="bi bi-card-text me-2"></i>Delivery Type Name
+              </label>
+              <input type="text" class="form-control border-0 shadow-sm rounded-3" id="deliveryTypeName0"
+                     name="deliveryTypeNames" placeholder="Enter delivery type name" required>
+            </div>
+          </div>
+
+          <button type="button" id="add-input-btn" class="btn btn-secondary mb-3">
+            <i class="bi bi-plus-lg"></i> Add Another Delivery Type
+          </button>
+
+          <!-- Buttons -->
+          <div class="d-flex justify-content-end mt-4">
+            <button type="submit" class="btn btn-success px-4 me-3 shadow-lg rounded-3">
+              <i class="bi bi-save me-2"></i>Save
+            </button>
+            <a href="/delivery-types" class="btn btn-outline-secondary px-4 shadow-lg rounded-3">
+              <i class="bi bi-arrow-left me-2"></i>Back to List
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let deliveryTypeCount = 1;
+    document.getElementById("add-input-btn").addEventListener("click", function () {
+        let container = document.getElementById("input-container");
+
+        let newInputGroup = document.createElement("div");
+        newInputGroup.classList.add("mb-4", "p-3", "bg-light", "rounded", "shadow-sm", "border");
+
+        let newLabel = document.createElement("label");
+        newLabel.setAttribute("for", `deliveryTypeName${deliveryTypeCount}`);
+        newLabel.classList.add("form-label", "fw-semibold");
+        newLabel.innerHTML = '<i class="bi bi-card-text me-2"></i>Delivery Type Name';
+
+        let newInput = document.createElement("input");
+        newInput.type = "text";
+        newInput.id = `deliveryTypeName${deliveryTypeCount}`;
+        newInput.name = "deliveryTypeNames";
+        newInput.classList.add("form-control", "border-0", "shadow-sm", "rounded-3", "mb-2");
+        newInput.placeholder = "Enter delivery type name";
+        newInput.required = true;
+
+        let removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.classList.add("btn", "btn-danger", "d-flex", "align-items-center");
+
+        let removeIcon = document.createElement("i");
+        removeIcon.classList.add("bi", "bi-trash", "me-2");
+
+        let removeText = document.createTextNode("Remove");
+
+        removeBtn.appendChild(removeIcon);
+        removeBtn.appendChild(removeText);
+
+        removeBtn.addEventListener("click", function () {
+            container.removeChild(newInputGroup);
+        });
+
+        newInputGroup.appendChild(newLabel);
+        newInputGroup.appendChild(newInput);
+        newInputGroup.appendChild(removeBtn);
+        container.appendChild(newInputGroup);
+
+        deliveryTypeCount++;
+    });
+  </script>
+
+</div>

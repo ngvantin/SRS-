@@ -1,0 +1,52 @@
+<div class="px-5" th:fragment="content">
+    <div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
+        <div class="card w-90 h-90 shadow-lg rounded-4 p-4">
+            <!-- Header với tiến trình -->
+            <div class="progress-header border-bottom pb-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-center flex-fill">
+                        <div class="rounded-circle bg-primary text-white fw-bold d-inline-block" style="width: 30px; height: 30px; line-height: 30px;">1</div>
+                        <div class="fw-medium mt-2">Paste Text</div>
+                        <div class="text-muted">Paste or type text content</div>
+                    </div>
+                    <div class="flex-grow-1 border-top border-primary mx-2"></div>
+                    <div class="text-center flex-fill">
+                        <div class="rounded-circle bg-secondary text-white fw-bold d-inline-block" style="width: 30px; height: 30px; line-height: 30px;">2</div>
+                        <div class="fw-medium mt-2">Configure Quiz</div>
+                        <div class="text-muted">Select types and levels</div>
+                    </div>
+                    <div class="flex-grow-1 border-top mx-2"></div>
+                    <div class="text-center flex-fill">
+                        <div class="rounded-circle bg-secondary text-white fw-bold d-inline-block" style="width: 30px; height: 30px; line-height: 30px;">3</div>
+                        <div class="fw-medium mt-2">Output Options</div>
+                        <div class="text-muted">Customize output format</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form nhập text -->
+            <form th:action="@{/ai/configure-quiz}" method="post">
+                <div class="main-content flex-grow-1 my-3">
+                    <div class="card shadow-sm p-3">
+                        <div class="d-flex gap-2 mb-3">
+                            <button class="btn btn-outline-secondary">H1</button>
+                            <button class="btn btn-outline-secondary">H2</button>
+                            <button class="btn btn-outline-secondary">P</button>
+                            <button class="btn btn-outline-secondary"><i class="bi bi-list-ul"></i></button>
+                            <button class="btn btn-outline-secondary"><i class="bi bi-list-ol"></i></button>
+                        </div>
+                        <textarea class="form-control" rows="10" name="text" placeholder="Paste your text here..." required>
+                            Cryptocurrencies have revolutionized the financial landscape...
+                        </textarea>
+                    </div>
+                </div>
+
+                <!-- Điều hướng -->
+                <div class="d-flex justify-content-between mt-3 border-top pt-3">
+                    <button type="button" class="btn btn-outline-secondary">Back</button>
+                    <button type="submit" class="btn btn-primary">Next Step</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

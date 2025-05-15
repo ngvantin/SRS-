@@ -1,0 +1,164 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="container mt-2">
+        <div class="card shadow-lg border-0 rounded-4">
+            <!-- Header -->
+            <div class="card-header text-dark rounded-top-4 d-flex align-items-center">
+                <i class="bi bi-person-plus me-2 fs-4"></i>
+                <h1 class="mb-0 fw-bold">Add User</h1>
+            </div>
+
+            <div class="card-body">
+                <!-- Error Message -->
+                <div id="userCreateError"></div>
+                <div id="userCreateSuccess"></div>
+                <form id="userCreateForm" autocomplete="off" class="needs-validation" novalidate>
+                    <!-- Personal Information Section -->
+                    <div class="card shadow-sm border-0 rounded-3 mb-4">
+                        <div class="card-header bg-dark text-white rounded-top-3 d-flex align-items-center">
+                            <i class="bi bi-person me-2"></i>
+                            <h5 class="mb-0">Personal Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <!-- First Name -->
+                                <div class="col-md-6">
+                                    <label for="firstName" class="form-label fw-semibold">
+                                        <i class="bi bi-person-badge me-2"></i>First Name
+                                    </label>
+                                    <input type="text" class="form-control border-0 shadow-sm rounded-3" id="firstName" name="firstName" placeholder="Enter first name" required>
+                                    <div class="invalid-feedback">First name is required</div>
+                                </div>
+                                
+                                <!-- Last Name -->
+                                <div class="col-md-6">
+                                    <label for="lastName" class="form-label fw-semibold">
+                                        <i class="bi bi-person-badge me-2"></i>Last Name
+                                    </label>
+                                    <input type="text" class="form-control border-0 shadow-sm rounded-3" id="lastName" name="lastName" placeholder="Enter last name" required>
+                                    <div class="invalid-feedback">Last name is required</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Account Information Section -->
+                    <div class="card shadow-sm border-0 rounded-3 mb-4">
+                        <div class="card-header bg-dark text-white rounded-top-3 d-flex align-items-center">
+                            <i class="bi bi-person-vcard me-2"></i>
+                            <h5 class="mb-0">Account Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <!-- Email -->
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label fw-semibold">
+                                        <i class="bi bi-envelope me-2"></i>Email Address
+                                    </label>
+                                    <input type="email" class="form-control border-0 shadow-sm rounded-3" id="email" name="email" placeholder="Enter email" required>
+                                    <div class="invalid-feedback">Email is required</div>
+                                </div>
+                                
+                                <!-- Username -->
+                                <div class="col-md-6">
+                                    <label for="username" class="form-label fw-semibold">
+                                        <i class="bi bi-person-circle me-2"></i>Username
+                                    </label>
+                                    <input type="text" class="form-control border-0 shadow-sm rounded-3" id="username" name="username" placeholder="Enter username" required>
+                                    <div class="invalid-feedback">Username is required</div>
+                                </div>
+                                
+                                <!-- 2FA Enabled -->
+                                <div class="col-md-6">
+                                    <label for="is2faEnabled" class="form-label fw-semibold">
+                                        <i class="bi bi-shield-lock me-2"></i>2FA Enabled
+                                    </label>
+                                    <select id="is2faEnabled" name="is2faEnabled" class="form-select border-0 shadow-sm rounded-3">
+                                        <option value="false">No</option>
+                                        <option value="true">Yes</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Locked -->
+                                <div class="col-md-6">
+                                    <label for="isLocked" class="form-label fw-semibold">
+                                        <i class="bi bi-lock me-2"></i>Locked
+                                    </label>
+                                    <select id="isLocked" name="isLocked" class="form-select border-0 shadow-sm rounded-3">
+                                        <option value="false">No</option>
+                                        <option value="true">Yes</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Security Settings Section -->
+                    <div class="card shadow-sm border-0 rounded-3 mb-4">
+                        <div class="card-header bg-dark text-white rounded-top-3 d-flex align-items-center">
+                            <i class="bi bi-shield-lock me-2"></i>
+                            <h5 class="mb-0">Security Settings</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <!-- Password -->
+                                <div class="col-md-6">
+                                    <label for="password" class="form-label fw-semibold">
+                                        <i class="bi bi-lock me-2"></i>Password
+                                    </label>
+                                    <input type="password" class="form-control border-0 shadow-sm rounded-3" id="password" name="password" placeholder="Enter password" required>
+                                    <div class="invalid-feedback">Password is required</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Roles Section -->
+                    <div class="card shadow-sm border-0 rounded-3 mb-4">
+                        <div class="card-header bg-dark text-white rounded-top-3 d-flex align-items-center">
+                            <i class="bi bi-person-gear me-2"></i>
+                            <h5 class="mb-0">Role Assignment</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group mb-3">
+                                <i class="bi bi-search input-group-text bg-light border-0"></i>
+                                <input type="text" class="form-control border-0 shadow-sm rounded-3" id="roleSearch"
+                                       placeholder="Search roles..." onkeyup="filterRoles()">
+                            </div>
+                            
+                            <!-- Fixed Select All -->
+                            <div class="mb-2">
+                                <input type="checkbox" id="selectAllRoles" onclick="toggleSelectAll()">
+                                <label for="selectAllRoles" class="fw-bold">Select All Roles</label>
+                            </div>
+                            
+                            <!-- Scrollable Role List -->
+                            <div class="scrollable-table">
+                                <div class="border p-2 rounded bg-light">
+                                    <div id="roleList">
+                                        <div th:each="role : ${roles}" class="role-item p-2 rounded-2 hover-effect">
+                                            <input type="checkbox" th:id="'role_' + ${role.id}" name="roles" th:value="${role.id}" class="role-checkbox">
+                                            <label th:for="'role_' + ${role.id}" class="ms-2" th:text="${role.name}"></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="/users" class="btn btn-outline-secondary px-4 me-3 shadow-lg rounded-3">
+                            <i class="bi bi-arrow-left me-2"></i>Back to List
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4 shadow-lg rounded-3">
+                            <i class="bi bi-save me-2"></i>Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <link rel="stylesheet" th:href="@{/css/users/create.css}">
+    <script th:src="@{/js/users/create.js}"></script>
+</div>

@@ -1,0 +1,187 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="container py-2">
+        <!-- Tab Navigation -->
+        <div th:replace="feedbacks/fragment/navbar-feed-back :: tab-navigation"></div>
+
+        <!-- Header -->
+        <div class="col-12 text-center mb-4">
+            <h1 class="fw-bold">Instructor Feedback</h1>
+        </div>
+
+        <!-- Alerts Section -->
+        <div class="mb-4">
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle fa-lg me-2"></i>
+                    <span th:text="${successMessage}"></span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+
+        <!-- Search and Actions Bar -->
+        <div class="card-body mb-3">
+            <form method="get" th:action="@{/feedbacks/instructor/search}" id="searchForm">
+                <div class="row align-items-center gy-3">
+                    <!-- Search Form -->
+                    <div class="col-md-6 d-flex gap-3">
+                        <div class="input-group me-2 flex-grow-1">
+                            <input list="instructorList" name="instructorName" id="searchInstructor" class="form-control"
+                                   placeholder="Search by instructor name" onchange="submitIfNoAdvanced(this.form)">
+                            <datalist id="instructorList">
+                                <option value="">All Instructors</option>
+                                <option th:each="instructor : ${instructors}" th:value="${instructor.username}" th:attr="data-id=${instructor.id}"></option>
+                            </datalist>
+                            <input type="hidden" name="instructorId" id="hiddenInstructorId">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="Search" title="Search">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleAdvancedFilters()" title="Filter">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-md-6 d-flex justify-content-end gap-2 flex-wrap">
+                        <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='/feedbacks/instructor'"
+                                title="Reload" aria-label="Reload feedbacks">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="window.location.href='/feedbacks/instructor/user'"
+                                title="Create New Feedback">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                    </div>
+
+                    <!-- Advanced Filters -->
+                    <div id="advancedFilters" class="collapse mt-3">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="minAverageRating" class="form-label fw-medium">Min Rating</label>
+                                <input type="number" name="minAverageRating" id="minAverageRating" class="form-control" step="0.1" min="0" max="5" th:value="${minAverageRating}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="startDate" class="form-label fw-medium">Start Date</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                                    <input type="date" class="form-control" id="startDate" name="startDate" th:value="${startDate}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="endDate" class="form-label fw-medium">End Date</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                                    <input type="date" class="form-control" id="endDate" name="endDate" th:value="${endDate}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Main Content -->
+        <main th:switch="${#lists.isEmpty(courseFeedbacks.content)}">
+            <div th:case="false" class="card border-0 shadow-sm">
+                <div class="table-responsive scrollable-table">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                        <tr>
+                            <th scope="col" class="fw-semibold text-center">#</th>
+                            <th scope="col" class="fw-semibold ">Instructor</th>
+                            <th scope="col" class="fw-semibold">Course Name</th>
+                            <th scope="col" class="fw-semibold">Average Rating</th>
+                            <th scope="col" class="fw-semibold">Date</th>
+                            <th scope="col" class="fw-semibold text-center">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="feedback, iterStat : ${courseFeedbacks.content}">
+                            <td th:text="${iterStat.count + (courseFeedbacks.number * courseFeedbacks.size)}" class="align-middle text-center"></td>
+                            <td th:text="${feedback.instructor.username}" class="align-middle fw-medium"></td>
+                            <td th:text="${feedback.course.name}" class="align-middle fw-medium"></td>
+                            <td th:text="${feedback.averageRating}" class="align-middle"></td>
+                            <td th:text="${#dates.format(feedback.date, 'dd-MM-yyyy HH:mm')}" class="align-middle text-muted small"></td>
+                            <td class="text-center align-middle">
+                                <a th:href="@{/feedbacks/instructor/{id}(id=${feedback.id})}" class="btn btn-sm btn-outline-secondary" title="View" aria-label="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex align-items-center justify-content-between mt-3">
+                    <span class="text-muted">Total Records: <strong th:text="${courseFeedbacks.totalElements}">0</strong></span>
+                    <nav aria-label="Feedback pagination">
+                        <ul class="pagination justify-content-end mb-0">
+                            <li class="page-item" th:classappend="${courseFeedbacks.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/feedbacks/instructor(page=0, size=${courseFeedbacks.size}, instructorName=${instructorName}, minAverageRating=${minAverageRating}, startDate=${startDate}, endDate=${endDate})}"
+                                   aria-label="First"><i class="bi bi-chevron-double-left"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${courseFeedbacks.first} ? 'disabled'">
+                                <a class="page-link" th:href="@{/feedbacks/instructor(page=${courseFeedbacks.number - 1}, size=${courseFeedbacks.size}, instructorName=${instructorName}, minAverageRating=${minAverageRating}, startDate=${startDate}, endDate=${endDate})}"
+                                   aria-label="Previous"><i class="bi bi-chevron-left"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${courseFeedbacks.number == 0} ? 'active'">
+                                <a class="page-link" th:href="@{/feedbacks/instructor(page=0, size=${courseFeedbacks.size}, instructorName=${instructorName}, minAverageRating=${minAverageRating}, startDate=${startDate}, endDate=${endDate})}">1</a>
+                            </li>
+                            <li class="page-item disabled" th:if="${courseFeedbacks.number > 2}">
+                                <span class="page-link">...</span>
+                            </li>
+                            <th:block th:each="i : ${#numbers.sequence(courseFeedbacks.number - 1, courseFeedbacks.number + 1)}"
+                                      th:if="${i > 0 and i < courseFeedbacks.totalPages - 1}">
+                                <li class="page-item" th:classappend="${courseFeedbacks.number == i} ? 'active'">
+                                    <a class="page-link" th:href="@{/feedbacks/instructor(page=${i}, size=${courseFeedbacks.size}, instructorName=${instructorName}, minAverageRating=${minAverageRating}, startDate=${startDate}, endDate=${endDate})}"
+                                       th:text="${i + 1}"></a>
+                                </li>
+                            </th:block>
+                            <li class="page-item disabled" th:if="${courseFeedbacks.number < courseFeedbacks.totalPages - 3}">
+                                <span class="page-link">...</span>
+                            </li>
+                            <li class="page-item" th:classappend="${courseFeedbacks.number == courseFeedbacks.totalPages - 1} ? 'active'"
+                                th:if="${courseFeedbacks.totalPages > 1}">
+                                <a class="page-link" th:href="@{/feedbacks/instructor(page=${courseFeedbacks.totalPages - 1}, size=${courseFeedbacks.size}, instructorName=${instructorName}, minAverageRating=${minAverageRating}, startDate=${startDate}, endDate=${endDate})}"
+                                   th:text="${courseFeedbacks.totalPages}"></a>
+                            </li>
+                            <li class="page-item" th:classappend="${courseFeedbacks.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/feedbacks/instructor(page=${courseFeedbacks.number + 1}, size=${courseFeedbacks.size}, instructorName=${instructorName}, minAverageRating=${minAverageRating}, startDate=${startDate}, endDate=${endDate})}"
+                                   aria-label="Next"><i class="bi bi-chevron-right"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${courseFeedbacks.last} ? 'disabled'">
+                                <a class="page-link" th:href="@{/feedbacks/instructor(page=${courseFeedbacks.totalPages - 1}, size=${courseFeedbacks.size}, instructorName=${instructorName}, minAverageRating=${minAverageRating}, startDate=${startDate}, endDate=${endDate})}"
+                                   aria-label="Last"><i class="bi bi-chevron-double-right"></i></a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:case="true" class="card border-0 shadow-sm p-4 text-center">
+                <div class="py-5">
+                    <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                    <h5>No Feedbacks Found</h5>
+                    <p class="text-muted">There are no feedbacks available or matching your search criteria.</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="/feedbacks/instructor" class="btn btn-outline-primary mt-2">
+                            <i class="fas fa-sync-alt me-1"></i> Reset Filters
+                        </a>
+                        <a href="/feedbacks/instructor/user" class="btn btn-primary mt-2">
+                            <i class="bi bi-plus-circle me-1"></i> Create Feedback
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:src="@{/js/feedbacks/instructor.js}"></script>
+    <script src="/js/feedbacks/instructor.js"></script>
+</div>

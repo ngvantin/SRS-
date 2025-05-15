@@ -1,0 +1,269 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <div class="container py-2">
+        <!-- Header -->
+        <div class="col-12 text-center mb-4">
+            <h1 class="fw-bold">Materials in Course <span th:text="${courseId}"></span> of <span th:text="${user.username}"></span></h1>
+        </div>
+
+        <!-- Actions Bar -->
+        <div class="card-body mb-3">
+            <div class="row align-items-center gy-3">
+                <!-- Search Form -->
+                <div class="col-md-6 d-flex">
+                    <form th:action="@{/progress/{userId}/course/{courseId}/materials(userId=${user.id}, courseId=${courseId})}" method="get" class="input-group me-2">
+                        <input type="text" class="form-control" name="searchTerm" th:value="${searchTerm}"
+                               placeholder="Search by material ID" aria-label="Material search">
+                        <input type="hidden" name="page" value="0">
+                        <input type="hidden" name="size" th:value="${size}">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary" aria-label="Search" title="Search">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                            th:onclick="'window.location.href=\'/progress/' + ${user.id} + '/course/' + ${courseId} + '/materials\''"
+                            title="Reload" aria-label="Reload materials"
+                            style="margin-right: 10px;">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal"
+                            title="Filter" aria-label="Filter materials">
+                        <i class="bi bi-funnel"></i>
+                    </button>
+                </div>
+                <!-- Action Buttons -->
+                <div class="col-md-6 d-flex justify-content-end gap-2 flex-wrap">
+                    <a th:href="@{/progress/{userId}/course/{courseId}/materials/export(userId=${user.id}, courseId=${courseId})}" class="btn btn-outline-secondary" title="Export to Excel">
+                        <i class="bi bi-file-earmark-excel"></i>
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Modal -->
+        <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="filterModalLabel">Filter Materials</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="filterForm">
+                            <div class="mb-3">
+                                <label class="form-label">Material ID</label>
+                                <select class="form-select" id="materialIdFilter">
+                                    <option value="">All</option>
+                                    <option th:each="material : ${materials}" th:value="${material.materialId}" th:text="${material.materialId}"></option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="statusFilter">
+                                    <option value="">All</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Not Completed">Not Completed</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Completion Date</label>
+                                <select class="form-select" id="completionDateFilter">
+                                    <option value="">All</option>
+                                    <option value="today">Today</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                    <option value="year">This Year</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="resetFilters()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main th:switch="${#lists.isEmpty(materials)}">
+            <div th:case="false" class="card border-0 shadow-sm">
+                <!-- Table View (Default) -->
+                <div id="tableViewContent" class="table-responsive text-center">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                        <tr>
+                            <th scope="col" class="fw-semibold text-center">#</th>
+                            <th scope="col" class="fw-semibold">Material ID</th>
+                            <th scope="col" class="fw-semibold">Material Name</th>
+                            <th scope="col" class="fw-semibold">Status</th>
+                            <th scope="col" class="fw-semibold">Completion Date</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="material, iterStat : ${materials}">
+                            <td th:text="${iterStat.count + (currentPage * size)}" class="align-middle"></td>
+                            <td th:text="${material.materialId}" class="align-middle fw-medium"></td>
+                            <td th:text="'Material ' + ${material.materialId}" class="align-middle" style="text-align: left;"></td>
+                            <td th:text="${material.isCompleted ? 'Completed' : 'Not Completed'}" class="align-middle" style="text-align: left;"></td>
+                            <td th:text="${material.isCompleted and material.completedAt != null ? #temporals.format(material.completedAt, 'dd/MM/yyyy HH:mm') : 'N/A'}" class="align-middle text-muted small"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex align-items-center justify-content-between mt-3">
+                    <span class="text-muted">Total Records: <strong th:text="${materials != null ? materials.size() : 0}"></strong> of <span th:text="${totalMaterials}"></span></span>
+                    <nav aria-label="Material pagination">
+                        <ul class="pagination justify-content-end mb-0">
+                            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/progress/{userId}/course/{courseId}/materials(userId=${user.id}, courseId=${courseId}, page=0, size=${size})}" aria-label="First"><i class="bi bi-chevron-double-left"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/progress/{userId}/course/{courseId}/materials(userId=${user.id}, courseId=${courseId}, page=${currentPage - 1}, size=${size})}" aria-label="Previous"><i class="bi bi-chevron-left"></i></a>
+                            </li>
+                            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${currentPage == i ? 'active' : ''}">
+                                <a class="page-link" th:href="@{/progress/{userId}/course/{courseId}/materials(userId=${user.id}, courseId=${courseId}, page=${i}, size=${size})}" th:text="${i + 1}"></a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/progress/{userId}/course/{courseId}/materials(userId=${user.id}, courseId=${courseId}, page=${currentPage + 1}, size=${size})}" aria-label="Next"><i class="bi bi-chevron-right"></i></a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                                <a class="page-link" th:href="@{/progress/{userId}/course/{courseId}/materials(userId=${user.id}, courseId=${courseId}, page=${totalPages - 1}, size=${size})}" aria-label="Last"><i class="bi bi-chevron-double-right"></i></a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:case="true" class="card border-0 shadow-sm p-4 text-center">
+                <div class="py-5">
+                    <i class="bi bi-folder-open fa-3x text-muted mb-3"></i>
+                    <h5>No Materials Found</h5>
+                    <p class="text-muted">There are no materials available for this course.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Back Button -->
+        <div class="text-end mt-3">
+            <a th:href="@{/progress/{userId}(userId=${user.id})}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-2"></i> Back
+            </a>
+        </div>
+    </div>
+
+<!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>-->
+    <script>
+    function applyFilters() {
+        const materialId = document.getElementById('materialIdFilter').value;
+        const status = document.getElementById('statusFilter').value;
+        const completionDate = document.getElementById('completionDateFilter').value;
+        
+        // Filter table rows
+        const rows = document.querySelectorAll('tbody tr');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            const rowMaterialId = row.querySelector('td:nth-child(2)').textContent;
+            const rowStatus = row.querySelector('td:nth-child(4)').textContent;
+            const rowCompletionDate = row.querySelector('td:nth-child(5)').textContent;
+            
+            let showRow = true;
+            
+            if (materialId && rowMaterialId !== materialId) showRow = false;
+            if (status && rowStatus !== status) showRow = false;
+            if (completionDate && rowCompletionDate !== 'N/A') {
+                const date = new Date(rowCompletionDate);
+                const today = new Date();
+                const diffTime = Math.abs(today - date);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                switch(completionDate) {
+                    case 'today':
+                        if (diffDays > 1) showRow = false;
+                        break;
+                    case 'week':
+                        if (diffDays > 7) showRow = false;
+                        break;
+                    case 'month':
+                        if (diffDays > 30) showRow = false;
+                        break;
+                    case 'year':
+                        if (diffDays > 365) showRow = false;
+                        break;
+                }
+            }
+            
+            row.style.display = showRow ? '' : 'none';
+            if (showRow) visibleCount++;
+        });
+        
+        // Update total records display
+        const totalRecordsElement = document.querySelector('.text-muted strong');
+        if (totalRecordsElement) {
+            totalRecordsElement.textContent = visibleCount;
+        }
+        
+        // Close modal properly
+        const modal = document.getElementById('filterModal');
+        const modalInstance = bootstrap.Modal.getInstance(modal);
+        if (modalInstance) {
+            modalInstance.hide();
+        } else {
+            modal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+        }
+    }
+
+    function resetFilters() {
+        document.getElementById('filterForm').reset();
+        const rows = document.querySelectorAll('tbody tr');
+        rows.forEach(row => row.style.display = '');
+        
+        // Update total records display
+        const totalRecordsElement = document.querySelector('.text-muted strong');
+        if (totalRecordsElement) {
+            totalRecordsElement.textContent = rows.length;
+        }
+        
+        // Close modal properly
+        const modal = document.getElementById('filterModal');
+        const modalInstance = bootstrap.Modal.getInstance(modal);
+        if (modalInstance) {
+            modalInstance.hide();
+        } else {
+            modal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+        }
+    }
+
+    // Add event listener for modal hidden event
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterModal = document.getElementById('filterModal');
+        if (filterModal) {
+            filterModal.addEventListener('hidden.bs.modal', function () {
+                document.body.classList.remove('modal-open');
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
+                }
+            });
+        }
+    });
+    </script>
+</div>

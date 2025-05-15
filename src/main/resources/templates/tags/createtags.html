@@ -1,0 +1,116 @@
+
+<div class="px-5" th:fragment="content">
+    <div class="container mt-5">
+        <div class="card shadow-lg border-0 rounded-4">
+            <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+                <i class="bi bi-tags me-2 fs-4"></i>
+                <h1 class="mb-0 fw-bold">Add Tags to Topic</h1>
+            </div>
+
+            <div class="card-body">
+                <div th:if="${error}" class="alert alert-danger d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span th:utext="${error}"></span>
+                </div>
+
+                <form th:action="@{/tags/create-multiple}" method="post" class="mb-4" id="createTagsForm">
+                    <div class="mb-4">
+                        <label for="topicId" class="form-label fw-semibold">
+                            <i class="bi bi-folder me-2"></i>Topic:
+                        </label>
+                        <select class="form-select border-0 shadow-sm rounded-3" id="topicId" name="topicId" required>
+                            <option value="">Select a Topic</option>
+                            <option th:each="topic : ${topics}" th:value="${topic.topicId}" th:text="${topic.topicName}"></option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-tag me-2"></i>Tag Name:
+                        </label>
+                        <div class="d-flex">
+                            <input type="text" class="form-control border-0 shadow-sm rounded-3 me-2 flex-grow-1" id="newTagName" placeholder="Enter tag name" maxlength="150" />                            <button type="button" id="addTagBtn" class="btn btn-outline-primary rounded-pill px-3 py-2 d-inline-flex align-items-center justify-content-center text-nowrap">
+                                Add Tag
+                            </button>
+
+
+                        </div>
+                        <div id="addedTags" class="mt-2">
+                        </div>
+                        <input type="hidden" name="tagNames" id="hiddenTagNames" value="" />
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="submit" class="btn btn-primary px-4 me-3 shadow-lg rounded-pill d-inline-flex align-items-center gap-2">
+                            <i class="bi bi-save"></i> Save
+                        </button>
+                        <a th:href="@{/tags}" class="btn btn-outline-secondary px-4 shadow-lg rounded-pill d-inline-flex align-items-center gap-2">
+                            <i class="bi bi-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const addTagBtn = document.getElementById('addTagBtn');
+            const newTagNameInput = document.getElementById('newTagName');
+            const addedTagsContainer = document.getElementById('addedTags');
+            const hiddenTagNamesInput = document.getElementById('hiddenTagNames');
+            let tags = [];
+
+            addTagBtn.addEventListener('click', function () {
+                const tagName = newTagNameInput.value.trim();
+
+                if (tagName && !tags.includes(tagName)) {
+                    tags.push(tagName);
+                    updateTagDisplay();
+                    newTagNameInput.value = '';
+                } else if (tags.includes(tagName)) {
+                    alert('Tag "' + tagName + '" đã tồn tại.');
+                } else {
+                    alert('Please enter a tag name.');
+                }
+            });
+
+            function removeTag(button) {
+                const tagNameToRemove = button.getAttribute('data-tag');
+                tags = tags.filter(tag => tag !== tagNameToRemove);
+                updateTagDisplay();
+            }
+
+            function updateTagDisplay() {
+                addedTagsContainer.innerHTML = '';
+                tags.forEach(tag => {
+                    const tagElement = document.createElement('span');
+                    tagElement.classList.add('badge', 'bg-primary', 'me-2', 'p-2', 'rounded-pill');
+                    tagElement.textContent = tag;
+
+                    const removeButton = document.createElement('button');
+                    removeButton.classList.add('btn-close', 'ms-2');
+                    removeButton.setAttribute('aria-label', 'Close');
+                    removeButton.setAttribute('data-tag', tag);
+                    removeButton.onclick = function() {
+                        removeTag(this);
+                    };
+
+                    tagElement.appendChild(removeButton);
+                    addedTagsContainer.appendChild(tagElement);
+                });
+                hiddenTagNamesInput.value = tags.join(','); // Gửi danh sách tag dưới dạng chuỗi
+            }
+
+            document.getElementById('createTagsForm').addEventListener('submit', function() {
+                // Trước khi submit, đảm bảo giá trị của hiddenTagNames đã được cập nhật
+                hiddenTagNamesInput.value = tags.join(',');
+                 if (tags.length === 0) {
+                    event.preventDefault(); // chặn submit
+                    alert("Vui lòng thêm ít nhất một tag trước khi lưu.");
+                    newTagNameInput.focus();
+                }
+            });
+        });
+    </script>
+</div>

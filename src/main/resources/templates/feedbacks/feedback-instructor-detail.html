@@ -1,0 +1,200 @@
+<div class="px-5" th:fragment="content" xmlns:th="http://www.w3.org/1999/xhtml">
+    <link href="/css/feedbacks/feedback-instructor-detail.css" rel="stylesheet">
+    <div class="container mt-4">
+        <div class="card shadow-lg border-0 rounded-4">
+            <!-- Header -->
+            <div class="card-header bg-primary text-white rounded-top-4 d-flex align-items-center">
+                <i class="bi bi-person-lines-fill me-2 fs-4"></i>
+                <h1 class="mb-0 fw-bold">Instructor Feedback</h1>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-md-6">
+                        <!-- Feedback ID -->
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <label class="form-label fw-semibold mb-0" style="width: 130px; white-space: nowrap;">
+                                <i class="bi bi-hash me-2"></i>Feedback ID
+                            </label>
+                            <p class="mb-0" th:text="${instructorFeedback.id}"></p>
+                        </div>
+
+                        <!-- Instructor -->
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <label class="form-label fw-semibold mb-0" style="width: 130px; white-space: nowrap;">
+                                <i class="bi bi-person me-2"></i>Instructor
+                            </label>
+                            <p class="mb-0" th:text="${instructorFeedback.instructor != null ? instructorFeedback.instructor.username : 'N/A'}"></p>
+                        </div>
+
+                        <!-- Student -->
+<!--                        <div class="mb-3 d-flex align-items-center gap-3">-->
+<!--                            <label class="form-label fw-semibold mb-0" style="width: 130px; white-space: nowrap;">-->
+<!--                                <i class="bi bi-person me-2"></i>Student-->
+<!--                            </label>-->
+<!--                            <p class="mb-0" th:text="${instructorFeedback.student != null ? instructorFeedback.student.username : 'N/A'}"></p>-->
+<!--                        </div>-->
+
+                        <!-- Course -->
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <label class="form-label fw-semibold mb-0" style="width: 130px; white-space: nowrap;">
+                                <i class="bi bi-book me-2"></i>Course
+                            </label>
+                            <p class="mb-0" th:text="${instructorFeedback.course != null ? instructorFeedback.course.name : 'N/A'}"></p>
+                        </div>
+
+                        <!-- Date -->
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <label class="form-label fw-semibold mb-0" style="width: 130px; white-space: nowrap;">
+                                <i class="bi bi-calendar me-2"></i>Date
+                            </label>
+                            <p class="mb-0" th:text="${#dates.format(instructorFeedback.date, 'yyyy-MM-dd HH:mm:ss')}"></p>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <!-- Average Rating -->
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <label class="form-label fw-semibold mb-0" style="width: 130px; white-space: nowrap;">
+                                <i class="bi bi-star me-2"></i>Average Rating
+                            </label>
+                            <div class="star-rating">
+                                <!-- Hiển thị ngôi sao vàng nếu rating > 0 -->
+                                <span th:if="${instructorFeedback.averageRating != null and instructorFeedback.averageRating.intValue() > 0}"
+                                      th:each="i : ${#numbers.sequence(1, instructorFeedback.averageRating.intValue())}"
+                                      class="rating-star">★</span>
+                                <!-- Hiển thị ngôi sao xám nếu rating > 0 và rating < 5 -->
+                                <span th:if="${instructorFeedback.averageRating != null and instructorFeedback.averageRating.intValue() > 0 and instructorFeedback.averageRating.intValue() < 5}"
+                                      th:each="i : ${#numbers.sequence(instructorFeedback.averageRating.intValue() + 1, 5)}"
+                                      class="rating-star-unfilled">★</span>
+                                <!-- Hiển thị 5 ngôi sao xám nếu rating = 0 hoặc null -->
+                                <span th:if="${instructorFeedback.averageRating == null or instructorFeedback.averageRating.intValue() == 0}"
+                                      th:each="i : ${#numbers.sequence(1, 5)}"
+                                      class="rating-star-unfilled">★</span>
+                            </div>
+                        </div>
+
+                        <!-- Ratings Section -->
+                        <div>
+                            <!-- Knowledge -->
+                            <div class="mb-3 d-flex align-items-center gap-3">
+                                <label class="form-label fw-semibold mb-0" style="width: 130px; white-space: nowrap;">
+                                    <i class="bi bi-book me-2"></i>Knowledge
+                                </label>
+                                <div class="star-rating">
+                                    <span th:if="${instructorFeedback.courseKnowledgeRating != null and instructorFeedback.courseKnowledgeRating.intValue() > 0}"
+                                          th:each="i : ${#numbers.sequence(1, instructorFeedback.courseKnowledgeRating.intValue())}"
+                                          class="rating-star">★</span>
+                                    <span th:if="${instructorFeedback.courseKnowledgeRating != null and instructorFeedback.courseKnowledgeRating.intValue() > 0 and instructorFeedback.courseKnowledgeRating.intValue() < 5}"
+                                          th:each="i : ${#numbers.sequence(instructorFeedback.courseKnowledgeRating.intValue() + 1, 5)}"
+                                          class="rating-star-unfilled">★</span>
+                                    <span th:if="${instructorFeedback.courseKnowledgeRating == null or instructorFeedback.courseKnowledgeRating.intValue() == 0}"
+                                          th:each="i : ${#numbers.sequence(1, 5)}"
+                                          class="rating-star-unfilled">★</span>
+                                </div>
+                            </div>
+
+                            <!-- Communication -->
+                            <div class="mb-3 d-flex align-items-center gap-3">
+                                <label class="form-label fw-semibold mb-0" style="width: 130px; white-space: nowrap;">
+                                    <i class="bi bi-chat-dots me-2"></i>Communication
+                                </label>
+                                <div class="star-rating">
+                                    <span th:if="${instructorFeedback.communicationSkillsRating != null and instructorFeedback.communicationSkillsRating.intValue() > 0}"
+                                          th:each="i : ${#numbers.sequence(1, instructorFeedback.communicationSkillsRating.intValue())}"
+                                          class="rating-star">★</span>
+                                    <span th:if="${instructorFeedback.communicationSkillsRating != null and instructorFeedback.communicationSkillsRating.intValue() > 0 and instructorFeedback.communicationSkillsRating.intValue() < 5}"
+                                          th:each="i : ${#numbers.sequence(instructorFeedback.communicationSkillsRating.intValue() + 1, 5)}"
+                                          class="rating-star-unfilled">★</span>
+                                    <span th:if="${instructorFeedback.communicationSkillsRating == null or instructorFeedback.communicationSkillsRating.intValue() == 0}"
+                                          th:each="i : ${#numbers.sequence(1, 5)}"
+                                          class="rating-star-unfilled">★</span>
+                                </div>
+                            </div>
+
+                            <!-- Approachability -->
+                            <div class="mb-3 d-flex align-items-center gap-3">
+                                <label class="form-label fw-semibold mb-0" style="width: 130px; white-space: nowrap;">
+                                    <i class="bi bi-person-check me-2"></i>Approachability
+                                </label>
+                                <div class="star-rating">
+                                    <span th:if="${instructorFeedback.approachabilityRating != null and instructorFeedback.approachabilityRating.intValue() > 0}"
+                                          th:each="i : ${#numbers.sequence(1, instructorFeedback.approachabilityRating.intValue())}"
+                                          class="rating-star">★</span>
+                                    <span th:if="${instructorFeedback.approachabilityRating != null and instructorFeedback.approachabilityRating.intValue() > 0 and instructorFeedback.approachabilityRating.intValue() < 5}"
+                                          th:each="i : ${#numbers.sequence(instructorFeedback.approachabilityRating.intValue() + 1, 5)}"
+                                          class="rating-star-unfilled">★</span>
+                                    <span th:if="${instructorFeedback.approachabilityRating == null or instructorFeedback.approachabilityRating.intValue() == 0}"
+                                          th:each="i : ${#numbers.sequence(1, 5)}"
+                                          class="rating-star-unfilled">★</span>
+                                </div>
+                            </div>
+
+                            <!-- Engagement -->
+                            <div class="mb-3 d-flex align-items-center gap-3">
+                                <label class="form-label fw-semibold mb-0" style="width: 130px; white-space: nowrap;">
+                                    <i class="bi bi-lightning me-2"></i>Engagement
+                                </label>
+                                <div class="star-rating">
+                                    <span th:if="${instructorFeedback.engagementRating != null and instructorFeedback.engagementRating.intValue() > 0}"
+                                          th:each="i : ${#numbers.sequence(1, instructorFeedback.engagementRating.intValue())}"
+                                          class="rating-star">★</span>
+                                    <span th:if="${instructorFeedback.engagementRating != null and instructorFeedback.engagementRating.intValue() > 0 and instructorFeedback.engagementRating.intValue() < 5}"
+                                          th:each="i : ${#numbers.sequence(instructorFeedback.engagementRating.intValue() + 1, 5)}"
+                                          class="rating-star-unfilled">★</span>
+                                    <span th:if="${instructorFeedback.engagementRating == null or instructorFeedback.engagementRating.intValue() == 0}"
+                                          th:each="i : ${#numbers.sequence(1, 5)}"
+                                          class="rating-star-unfilled">★</span>
+                                </div>
+                            </div>
+
+                            <!-- Professionalism -->
+                            <div class="mb-3 d-flex align-items-center gap-3">
+                                <label class="form-label fw-semibold mb-0" style="width: 130px; white-space: nowrap;">
+                                    <i class="bi bi-briefcase me-2"></i>Professionalism
+                                </label>
+                                <div class="star-rating">
+                                    <span th:if="${instructorFeedback.professionalismRating != null and instructorFeedback.professionalismRating.intValue() > 0}"
+                                          th:each="i : ${#numbers.sequence(1, instructorFeedback.professionalismRating.intValue())}"
+                                          class="rating-star">★</span>
+                                    <span th:if="${instructorFeedback.professionalismRating != null and instructorFeedback.professionalismRating.intValue() > 0 and instructorFeedback.professionalismRating.intValue() < 5}"
+                                          th:each="i : ${#numbers.sequence(instructorFeedback.professionalismRating.intValue() + 1, 5)}"
+                                          class="rating-star-unfilled">★</span>
+                                    <span th:if="${instructorFeedback.professionalismRating == null or instructorFeedback.professionalismRating.intValue() == 0}"
+                                          th:each="i : ${#numbers.sequence(1, 5)}"
+                                          class="rating-star-unfilled">★</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="mb-4">
+                    <h5 class="fw-semibold mb-3">Comments</h5>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <div class="form-group">
+                                <label class="form-label fw-semibold">
+                                    <i class="bi bi-chat-text me-2"></i>Feedback
+                                </label>
+                                <p class="border-0 shadow-sm rounded-3 p-2 bg-light" th:text="${instructorFeedback.comments != null ? instructorFeedback.comments : 'No comments'}"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-end mt-4">
+                    <a th:href="${currentRole == 'Student'} ? '/feedbacks/instructor/user/list' : '/feedbacks/instructor'"
+                       class="btn btn-outline-secondary px-4 shadow-lg rounded-3">
+                        <i class="bi bi-arrow-left me-2"></i>Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

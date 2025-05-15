@@ -1,0 +1,62 @@
+<div class="px-5" th:fragment="content">
+    <div class="container py-5">
+        <div class="card shadow rounded-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-question-circle me-2 fs-4"></i>
+                    <h1>Quiz Detail</h1>
+                </div>
+                <div>
+                    <a th:href="@{/quizzes/edit/{id}(id=${quiz.id})}" class="btn btn-warning btn-sm me-2">
+                        <i class="bi bi-pen"></i> Edit Quiz
+                    </a>
+                    <a th:href="@{/quizzes}" class="btn btn-outline-light btn-sm">Back to Quizzes</a>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <!-- Quiz Information -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p th:if="${quiz != null}" class="mb-2"><strong>Quiz Name:</strong>
+                            <span th:text="${quiz.name ?: 'No Name Provided'}"></span>
+                        </p>
+                        <p th:if="${quiz != null}"><strong>Description:</strong>
+                            <span th:text="${quiz.description ?: 'No Description Provided'}"></span>
+                        </p>
+                        <p th:if="${quiz == null}" class="text-danger">Quiz data is not available.</p>
+                    </div>
+                </div>
+
+                <!-- Questions Section -->
+                <h5 class="fw-bold">Questions</h5>
+                <div th:if="${!#lists.isEmpty(quiz.questions)}" class="list-group scrollable-table">
+                    <div th:each="question, iterStat : ${quiz.questions}"
+                         class="card mb-3 shadow-sm rounded-3">
+                        <div class="card-body">
+                            <h6 class="fw-semibold">Question <span th:text="${iterStat.count}"></span>:
+                                <span th:utext="${question.text ?: 'No Question Text'}"></span>
+                            </h6>
+                            <p class="text-muted mb-2">
+                                Type: <span th:text="${question.type ?: 'Unknown'}"></span> |
+                                Points: <span th:text="${question.points ?: '0'}"></span>
+                            </p>
+
+                            <ul class="list-group">
+                                <li th:each="answer : ${question.answers}"
+                                    class="list-group-item d-flex align-items-center">
+                                    <input type="checkbox" class="form-check-input ms-4 correct-answer"
+                                           th:disabled="true" th:checked="${answer.isCorrect}">
+                                    <span class="ms-5" th:text="${answer.text ?: 'No Answer Text'}"></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No Questions Message -->
+                <p th:if="${#lists.isEmpty(quiz.questions)}" class="text-danger">No questions available for this quiz.</p>
+            </div>
+        </div>
+    </div>
+</div>

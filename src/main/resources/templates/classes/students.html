@@ -1,0 +1,263 @@
+<div class="px-5" th:fragment="content">
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Student - Class <span th:text="${courseClass != null ? courseClass.name : ''}"></span></h1>
+            <div class="d-flex gap-2">
+                <a th:href="@{/classes}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+                <a th:if="${courseClass != null}" th:href="@{/classes/{id}/students/add(id=${courseClass.id})}" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Add Student
+                </a>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <strong>Class Info</strong>
+            </div>
+            <div th:if="${courseClass != null}" class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>Code:</strong> <span th:text="${courseClass.classCode}"></span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Active Date:</strong>
+                            <span th:text="${courseClass.startDate != null ? #temporals.format(courseClass.startDate, 'dd/MM/yyyy') : '-'}"></span> -
+                            <span th:text="${courseClass.endDate != null ? #temporals.format(courseClass.endDate, 'dd/MM/yyyy') : '-'}"></span>
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Status:</strong>
+                            <span th:if="${courseClass.isActive == true}" class="badge bg-success">Active</span>
+                            <span th:if="${courseClass.isActive == false}" class="badge bg-secondary">Inactive</span>
+                            <span th:if="${courseClass.isActive == null}" class="badge bg-secondary">Inactive</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <p><strong>Class Description:</strong> <span th:text="${courseClass.description ?: 'Không có mô tả'}"></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${students == null || #lists.isEmpty(students)}" class="text-center mt-4">
+            <div class="alert alert-info">
+                <i class="fas fa-exclamation-circle"></i> <span>There is no student in this class.</span>
+            </div>
+        </div>
+        <!-- Student Table -->
+        <div th:if="${students != null && !#lists.isEmpty(students)}" class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th><input type="checkbox" id="selectAll"></th>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Last Name</th>
+                    <th>First Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="student, stat : ${students}">
+                    <td><input type="checkbox" class="selectItem" th:value="${student.id}"></td>
+                    <td th:text="${stat.count}"></td>
+                    <td th:text="${student.username}"></td>
+                    <td th:text="${student.lastName}"></td>
+                    <td th:text="${student.firstName}"></td>
+                    <td th:text="${student.email}"></td>
+                    <td>
+                        <span th:if="${!student.isLocked}" class="badge bg-success">Active</span>
+                        <span th:if="${student.isLocked}" class="badge bg-danger">Locked</span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <form th:if="${courseClass != null}"
+                                  th:action="@{/classes/{classId}/students/remove/{studentId}(classId=${courseClass.id}, studentId=${student.id})}"
+                                  method="post" style="display:inline;">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" title="Remove from class"
+                                        onclick="confirmRemoveStudent(event, this)">
+                                    <i class="fas fa-user-minus"></i>
+                                </button>
+                            </form>
+
+                            <form th:if="${courseClass != null}"
+                                  th:action="@{/classes/{classId}/students/toggle-status/{studentId}(classId=${courseClass.id}, studentId=${student.id})}"
+                                  method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Change Status">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Nút xóa nhiều sinh viên (ẩn nếu không có sinh viên) -->
+        <div th:if="${students != null && !#lists.isEmpty(students)}" class="mt-2">
+            <button type="button" id="removeSelected" class="btn btn-danger" disabled>Remove Selected</button>
+        </div>
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const selectAllCheckbox = document.getElementById("selectAll");
+            const studentCheckboxes = document.querySelectorAll(".selectItem");
+            const removeButton = document.getElementById("removeSelected");
+
+            // Hàm kiểm tra có checkbox nào được chọn không
+            function updateRemoveButtonState() {
+                const anyChecked = Array.from(studentCheckboxes).some(cb => cb.checked);
+                removeButton.disabled = !anyChecked;
+            }
+
+            // Xử lý sự kiện chọn tất cả
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener("change", function () {
+                    studentCheckboxes.forEach(cb => {
+                        cb.checked = this.checked;
+                    });
+                    updateRemoveButtonState();
+                });
+            }
+
+            // Xử lý sự kiện chọn từng checkbox
+            studentCheckboxes.forEach(cb => {
+                cb.addEventListener("change", updateRemoveButtonState);
+            });
+
+            // Xử lý khi nhấn nút xóa
+            removeButton.addEventListener("click", function () {
+                let selectedIds = Array.from(studentCheckboxes)
+                                      .filter(cb => cb.checked)
+                                      .map(cb => cb.value);
+
+                if (selectedIds.length === 0) {
+                    return;
+                }
+
+                Swal.fire({
+                    title: "Are you sure you want to delete the selected students?",
+                    text: "This action cannot be undone!",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Delete",
+                    cancelButtonText: "Cancel",
+                    reverseButtons: true,
+                    customClass: {
+                        confirmButton: "btn btn-danger",  // Nút đỏ
+                        cancelButton: "btn btn-secondary" // Nút xám
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(window.location.pathname + "/remove-all", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ ids: selectedIds })
+                        })
+                        .then(response => response.text())
+                        .then(message => {
+                            Swal.fire({
+                                title: "Deleted!",
+                                text: message,
+                                icon: "success",
+                                confirmButtonText: "OK",
+                                customClass: { confirmButton: "btn btn-success" },
+                                buttonsStyling: false
+                            }).then(() => location.reload());
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: "Error!",
+                                    text: "An error occurred while deleting students.",
+                                icon: "error",
+                                confirmButtonText: "OK",
+                                customClass: { confirmButton: "btn btn-danger" },
+                                buttonsStyling: false
+                            });
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+
+
+    <script>
+        function confirmRemoveStudent(event, element) {
+            event.preventDefault();
+
+            Swal.fire({
+                title: "Bạn có chắc chắn muốn xóa học viên này?",
+                text: "Hành động này không thể hoàn tác!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Có, xóa!",
+                cancelButtonText: "Hủy",
+                reverseButtons: true,
+                customClass: {
+                    popup: 'custom-popup',
+                    confirmButton: 'custom-confirm-btn',
+                    cancelButton: 'custom-cancel-btn'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    element.closest("form").submit();
+                }
+            });
+        }
+    </script>
+
+    <style>
+
+        .custom-popup {
+            background-color: #ffffff;
+            color: black;
+        }
+
+        .custom-confirm-btn {
+            border: 1px solid #dc3545 !important;
+            color: #dc3545 !important;
+            background-color: white !important;
+            padding: 10px 10px !important;
+            border-radius: 5px !important;
+            margin-left: 10px !important;
+        }
+
+        .custom-confirm-btn:hover {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+
+        .custom-cancel-btn {
+            background-color: #6c757d !important;
+            color: white !important;
+            padding: 10px 10px !important;
+            border-radius: 5px !important;
+        }
+
+        .custom-cancel-btn:hover {
+            background-color: #5a6268 !important;
+        }
+    </style>
+
+</div>
