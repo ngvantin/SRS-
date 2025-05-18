@@ -1,23 +1,11 @@
 package com.example.hcm25_cpl_ks_java_01_lms.user;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.example.hcm25_cpl_ks_java_01_lms.chat.UserDTO;
 import com.example.hcm25_cpl_ks_java_01_lms.course.Course;
-import com.example.hcm25_cpl_ks_java_01_lms.student.Student;
-import com.example.hcm25_cpl_ks_java_01_lms.student.StudentRepository;
+import com.example.hcm25_cpl_ks_java_01_lms.role.Role;
+import com.example.hcm25_cpl_ks_java_01_lms.role.RoleRepository;
 import com.example.hcm25_cpl_ks_java_01_lms.student_learning.dto.EnrolledCourseDTO;
-
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -32,8 +20,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.hcm25_cpl_ks_java_01_lms.role.Role;
-import com.example.hcm25_cpl_ks_java_01_lms.role.RoleRepository;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -47,9 +38,6 @@ public class UserService implements UserDetailsService {
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
     }
-
-    @Autowired
-    private StudentRepository studentRepository;
 
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
@@ -84,24 +72,18 @@ public class UserService implements UserDetailsService {
         if (userRepository.existsByUsernameOrEmail(user.getUsername(), user.getEmail())) {
             throw new UserExistedException("Username or email already exists");
         }
-
+        user = userRepository.save(user);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
         List<Role> roles = user.getRoles();
-        if (roles != null && !roles.isEmpty()) {
+        if(roles != null && !roles.isEmpty()) {
             roles = roleRepository.findByListId(user.getRoles().stream().map(Role::getId).toList());
             user.setRoles(roles);
+            for(Role role : roles) {
+                role.getUsers().add(user);
+                roleRepository.save(role);
+            }
         }
-
-        boolean isStudent = roles.stream().anyMatch(role -> "STUDENT".equalsIgnoreCase(role.getName()));
-
-        if (isStudent) {
-            Student student = new Student();
-            student.setUser(user);
-            return studentRepository.save(student);
-        } else {
-            return userRepository.save(user);
-        }
+        return userRepository.save(user);
     }
 
     public User getUserById(Long id) {
@@ -193,9 +175,7 @@ public class UserService implements UserDetailsService {
     public void register(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         roleRepository.findByName("Student").ifPresent(role -> user.setRoles(List.of(role)));
-        Student student = new Student();
-        student.setUser(user);
-        studentRepository.save(student);
+        userRepository.save(user);
     }
 
     public ByteArrayInputStream exportToExcel(List<User> users) throws IOException {

@@ -2,7 +2,6 @@ package com.example.hcm25_cpl_ks_java_01_lms.student_learning;
 
 import com.example.hcm25_cpl_ks_java_01_lms.course.Course;
 import com.example.hcm25_cpl_ks_java_01_lms.course.CourseRepository;
-import com.example.hcm25_cpl_ks_java_01_lms.student.Student;
 import com.example.hcm25_cpl_ks_java_01_lms.student.StudentRepository;
 import com.example.hcm25_cpl_ks_java_01_lms.user.User;
 import com.example.hcm25_cpl_ks_java_01_lms.user.UserRepository;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class StudentLearningService {

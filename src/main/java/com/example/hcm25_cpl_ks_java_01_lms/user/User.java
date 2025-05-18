@@ -1,5 +1,6 @@
 package com.example.hcm25_cpl_ks_java_01_lms.user;
 
+import com.example.hcm25_cpl_ks_java_01_lms.activity.Activity;
 import com.example.hcm25_cpl_ks_java_01_lms.chat.Conversation;
 import com.example.hcm25_cpl_ks_java_01_lms.chat.Message;
 import com.example.hcm25_cpl_ks_java_01_lms.learningpath.LearningPath;
@@ -10,7 +11,6 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import com.example.hcm25_cpl_ks_java_01_lms.activity.Activity;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,8 +22,6 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "DTYPE", discriminatorType = DiscriminatorType.STRING)
 @Builder
 @Table(name = "app_user")  // Renaming 'user' to 'app_user'
 public class User implements UserDetails {

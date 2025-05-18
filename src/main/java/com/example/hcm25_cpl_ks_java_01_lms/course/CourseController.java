@@ -1,29 +1,14 @@
 package com.example.hcm25_cpl_ks_java_01_lms.course;
 
-import com.example.hcm25_cpl_ks_java_01_lms.classes.ClassesService;
 import com.example.hcm25_cpl_ks_java_01_lms.common.Constants;
-import com.example.hcm25_cpl_ks_java_01_lms.course_enrollment.CourseEnrollment;
-import com.example.hcm25_cpl_ks_java_01_lms.course_enrollment.CourseEnrollmentService;
-import com.example.hcm25_cpl_ks_java_01_lms.material.CourseMaterial;
-import com.example.hcm25_cpl_ks_java_01_lms.material.CourseMaterialService;
-import com.example.hcm25_cpl_ks_java_01_lms.session.Session;
-import com.example.hcm25_cpl_ks_java_01_lms.session.SessionRepository;
-import com.example.hcm25_cpl_ks_java_01_lms.session.SessionService;
-import com.example.hcm25_cpl_ks_java_01_lms.tag.Tag;
 import com.example.hcm25_cpl_ks_java_01_lms.topic.Topic;
 import com.example.hcm25_cpl_ks_java_01_lms.topic.TopicService;
 import com.example.hcm25_cpl_ks_java_01_lms.user.User;
 import com.example.hcm25_cpl_ks_java_01_lms.user.UserRepository;
 import com.example.hcm25_cpl_ks_java_01_lms.user.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.hpsf.Section;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpHeaders;
@@ -39,12 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -52,7 +32,7 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/courses")
 @PreAuthorize("@customSecurityService.hasRoleForModule(authentication, 'Course')")
-public class CourseController {
+public class CourseController{
     private final CourseService courseService;
     private final UserService userService;
 
@@ -60,22 +40,12 @@ public class CourseController {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
 
-    private final ClassesService classService;
-
-    private final CourseEnrollmentService courseEnrollmentService;
-    private final SessionService sessionService;
-    private final CourseMaterialService materialService;
-
-    public CourseController(UserRepository userRepository, CourseRepository courseRepository, CourseService courseService, UserService userService, TopicService topicService, ClassesService classService, CourseEnrollmentService courseEnrollmentService, SessionService sessionService, CourseMaterialService materialService) {
+    public CourseController(UserRepository userRepository, CourseRepository courseRepository, CourseService courseService, UserService userService, TopicService topicService) {
         this.courseService = courseService;
         this.userService = userService;
         this.topicService = topicService;
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
-        this.classService = classService;
-        this.courseEnrollmentService = courseEnrollmentService;
-        this.sessionService = sessionService;
-        this.materialService = materialService;
     }
 
     @GetMapping
@@ -499,30 +469,6 @@ public class CourseController {
         }
     }
 
-    @PostMapping("/{courseId}/enroll")
-    public String enrollClassToCourse(@PathVariable Long courseId, @RequestParam Long classId) {
-        List<Long> studentIds = classService.getClassById(classId).getStudents()
-                .stream().map(User::getId).toList();
-        courseEnrollmentService.enrollStudents(courseId, studentIds);
-
-        // Redirect về trang training programs list theo class
-        return "redirect:/training-programs/list?classId=" + classId;
-    }
-
-    @PostMapping("/{courseId}/unenroll")
-    public String unenrollClassFromCourse(@PathVariable Long courseId, @RequestParam Long classId) {
-        List<User> classStudents = classService.getClassById(classId).getStudents();
-        List<CourseEnrollment> enrollments = courseEnrollmentService.getEnrollmentsByCourse(courseId);
-
-        for (CourseEnrollment ce : enrollments) {
-            if (classStudents.contains(ce.getUser())) {
-                courseEnrollmentService.deleteCourseEnrollment(ce.getId());
-            }
-        }
-
-        // Redirect về trang training programs list theo class
-        return "redirect:/training-programs/list?classId=" + classId;
-    }
 
 
 //    @PostMapping("/save-topics-tags")
@@ -580,350 +526,4 @@ public class CourseController {
 //            this.tags = tags;
 //        }
 //    }
-
-//    @PostMapping("/import-course-session")
-//    @PreAuthorize("hasAnyRole('Admin')")
-//    public String importFromExcel(@RequestParam("file") MultipartFile file, Model model) {
-//        model.addAttribute("content", "courses/list");
-//
-//        // Kiểm tra nếu file không được chọn
-//        if (file.isEmpty()) {
-//            model.addAttribute("error", "Please select a file to upload");
-//            return Constants.LAYOUT;
-//        }
-//
-//        try (InputStream is = file.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
-//
-//            Map<String, Course> courseMap = new HashMap<>();
-//            Map<String, Session> sessionMap = new HashMap<>();
-//
-//            // --- 1. Read Courses sheet ---
-//            Sheet courseSheet = workbook.getSheet("Courses");
-//            if (courseSheet != null) {
-//                for (int i = 1; i <= courseSheet.getLastRowNum(); i++) {
-//                    Row row = courseSheet.getRow(i);
-//                    if (row == null) continue;
-//
-//                    String courseName = getCellValue(row.getCell(0));
-//                    String courseCode = getCellValue(row.getCell(1));
-//                    String courseDesc = getCellValue(row.getCell(2));
-//
-//                    Course course = Course.builder()
-//                            .name(courseName)
-//                            .code(courseCode)
-//                            .description(courseDesc)
-//                            .published(false)
-//                            .price(0)
-//                            .discount(0)
-//                            .durationInWeeks(1)
-//                            .language("English")
-//                            .level("Beginner")
-//                            .build();
-//                    course = courseService.saveCourse(course);
-//                    courseMap.put(courseCode, course);
-//                }
-//            }
-//
-//            // --- 2. Read Sessions sheet ---
-//            Sheet sessionSheet = workbook.getSheet("Sessions");
-//            if (sessionSheet != null) {
-//                for (int i = 1; i <= sessionSheet.getLastRowNum(); i++) {
-//                    Row row = sessionSheet.getRow(i);
-//                    if (row == null) continue;
-//
-//                    String courseCode = getCellValue(row.getCell(0));
-//                    String sessionName = getCellValue(row.getCell(1));
-//                    Long sessionOrder = Long.parseLong(getCellValue(row.getCell(2)));
-//
-//                    Course course = courseMap.get(courseCode);
-//                    if (course == null) {
-////                        return ResponseEntity.badRequest().body("Course not found for code: " + courseCode);
-//                        return "Course not found for code: " + courseCode;
-//                    }
-//
-//                    String sessionKey = courseCode + "_" + sessionOrder;
-//                    Session session = Session.builder()
-//                            .course(course)
-//                            .name(sessionName)
-//                            .orderNumber(sessionOrder)
-//                            .build();
-//                    session = sessionService.saveSession(session);
-//                    sessionMap.put(sessionKey, session);
-//                }
-//            }
-//
-//            // --- 3. Read CourseMaterials sheet ---
-//            Sheet materialSheet = workbook.getSheet("CourseMaterials");
-//            if (materialSheet != null) {
-//                for (int i = 1; i <= materialSheet.getLastRowNum(); i++) {
-//                    Row row = materialSheet.getRow(i);
-//                    if (row == null) continue;
-//
-//                    String courseCode = getCellValue(row.getCell(0));
-//                    Long sessionOrder = Long.parseLong(getCellValue(row.getCell(1)));
-//                    String materialName = getCellValue(row.getCell(2));
-//                    String materialType = getCellValue(row.getCell(3));
-//                    String materialUrl = getCellValue(row.getCell(4));
-//                    Integer materialOrder = Integer.parseInt(getCellValue(row.getCell(5)));
-//
-//                    String sessionKey = courseCode + "_" + sessionOrder;
-//                    Session session = sessionMap.get(sessionKey);
-//                    if (session == null) {
-////                        return ResponseEntity.badRequest().body("Session not found for courseCode: " + courseCode + ", sessionOrder: " + sessionOrder);
-//                        return "Session not found for courseCode: " + courseCode + ", sessionOrder: " + sessionOrder;
-//                    }
-//
-//                    CourseMaterial material = CourseMaterial.builder()
-//                            .name(materialName)
-//                            .type(CourseMaterial.MaterialType.valueOf(materialType.toUpperCase()))
-//                            .fileUrl(materialUrl)
-//                            .session(session)
-//                            .order(materialOrder)
-//                            .build();
-//                    materialService.saveMaterial(material);
-//                }
-//            }
-//
-////            return ResponseEntity.ok("Imported successfully.");
-//            // Thêm thông báo thành công vào model
-//            model.addAttribute("importSuccess", "Successfully uploaded and imported data");
-//            return "redirect:/courses";
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            model.addAttribute("importError", "Failed to import data from file: " + e.getMessage());
-//            return "redirect:/courses";
-//        } catch (NumberFormatException e) {
-//            model.addAttribute("importError", "Invalid number format in the Excel file: " + e.getMessage());
-//            return "redirect:/courses";
-//        } catch (RuntimeException e) {
-//            model.addAttribute("importError", "Error during import: " + e.getMessage());
-//            return "redirect:/courses";
-//        }
-//    }
-//
-//    private String getCellValue(Cell cell) {
-//        if (cell == null) return "";
-//        switch (cell.getCellType()) {
-//            case STRING:
-//                return cell.getStringCellValue().trim();
-//            case NUMERIC:
-//                return String.valueOf((long) cell.getNumericCellValue());
-//            case BOOLEAN:
-//                return String.valueOf(cell.getBooleanCellValue());
-//            default:
-//                return "";
-//        }
-//    }
-
-@PostMapping("/import-course-data")
-    public String importCourseData(@RequestParam("file") MultipartFile file, Model model, RedirectAttributes redirectAttributes) {
-        if (file.isEmpty()) {
-//        return new ResponseEntity<>("Please upload an Excel file.", HttpStatus.BAD_REQUEST);
-            redirectAttributes.addFlashAttribute("message", "Please select a file to upload!");
-            return "redirect:/courses";
-        }
-
-        try (InputStream inputStream = file.getInputStream();
-             Workbook workbook = WorkbookFactory.create(inputStream)) {
-
-            Sheet courseSheet = workbook.getSheet("Courses");
-            Sheet sessionSheet = workbook.getSheet("Sessions");
-            Sheet materialSheet = workbook.getSheet("Materials");
-
-            if (courseSheet == null || sessionSheet == null || materialSheet == null) {
-//            return new ResponseEntity<>("One or more sheets ('Courses', 'Sessions', 'Materials') are missing.", HttpStatus.BAD_REQUEST);
-                return "redirect:/courses";
-            }
-
-            List<Course> courses = importCourses(courseSheet);
-            List<Session> sessions = importSessions(sessionSheet, courses);
-            importMaterials(materialSheet, courses, sessions);
-
-//        return new ResponseEntity<>("Data imported successfully!", HttpStatus.OK);
-            redirectAttributes.addFlashAttribute("message", "Course data imported successfully!");
-            return "redirect:/courses";
-        } catch (IOException e) { e.printStackTrace();
-            model.addAttribute("importError", "Failed to import data from file: " + e.getMessage());
-            return "redirect:/courses";
-        } catch (NumberFormatException e) {
-            model.addAttribute("importError", "Invalid number format in the Excel file: " + e.getMessage());
-            redirectAttributes.addFlashAttribute("message", "Error importing course data: " + e.getMessage());
-            return "redirect:/courses";
-        } catch (RuntimeException e) {
-            model.addAttribute("importError", "Error during import: " + e.getMessage());
-            return "redirect:/courses";
-        }
-    }
-
-    private List<Course> importCourses(Sheet courseSheet) {
-        List<Course> courses = new ArrayList<>();
-        Iterator<Row> rowIterator = courseSheet.iterator();
-
-        // Skip header row if it exists
-        if (rowIterator.hasNext()) {
-            rowIterator.next();
-        }
-
-        while (rowIterator.hasNext()) {
-            Row row = rowIterator.next();
-            try {
-                Course course = Course.builder()
-                        .name(getStringCellValue(row.getCell(0)))
-                        .code(getStringCellValue(row.getCell(1)))
-                        .description(getStringCellValue(row.getCell(2)))
-                        .published(getBooleanCellValue(row.getCell(3)))
-                        .image(getStringCellValue(row.getCell(4)))
-                        .price(getFloatCellValue(row.getCell(5)))
-                        .discount(getFloatCellValue(row.getCell(6)))
-                        .durationInWeeks(getIntCellValue(row.getCell(7)))
-                        .language(getStringCellValue(row.getCell(8)))
-                        .level(getStringCellValue(row.getCell(9)))
-                        .build();
-                courses.add(course);
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Error processing Course row: " + row.getRowNum() + ". Details: " + e.getMessage());
-            }
-        }
-        return courseRepository.saveAll(courses);
-    }
-
-    private List<Session> importSessions(Sheet sessionSheet, List<Course> courses) {
-        List<Session> sessions = new ArrayList<>();
-        Iterator<Row> rowIterator = sessionSheet.iterator();
-
-        // Skip header row
-        if (rowIterator.hasNext()) {
-            rowIterator.next();
-        }
-
-        while (rowIterator.hasNext()) {
-            Row row = rowIterator.next();
-            try {
-                String courseCode = getStringCellValue(row.getCell(0));
-                Course course = courses.stream()
-                        .filter(c -> c.getCode().equals(courseCode))
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalArgumentException("Course with code '" + courseCode + "' not found for Session in row: " + row.getRowNum()));
-
-                Session session = Session.builder()
-                        .course(course)
-                        .name(getStringCellValue(row.getCell(1)))
-                        .orderNumber(getLongCellValue(row.getCell(2)))
-                        .build();
-                sessions.add(session);
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Error processing Session row: " + row.getRowNum() + ". Details: " + e.getMessage());
-            }
-        }
-        return sessionService.saveAll(sessions);
-    }
-
-    private void importMaterials(Sheet materialSheet, List<Course> courses, List<Session> sessions) {
-        List<CourseMaterial> materials = new ArrayList<>();
-        Iterator<Row> rowIterator = materialSheet.iterator();
-
-        // Skip header row
-        if (rowIterator.hasNext()) {
-            rowIterator.next();
-        }
-
-        while (rowIterator.hasNext()) {
-            Row row = rowIterator.next();
-            try {
-                String courseCode = getStringCellValue(row.getCell(0));
-                Course course = courses.stream()
-                        .filter(c -> c.getCode().equals(courseCode))
-                        .findFirst()
-                        .orElse(null); // Course might be null if material is only linked to a session
-
-                String sessionName = getStringCellValue(row.getCell(1));
-                Session session = sessions.stream()
-                        .filter(s -> s.getName().equals(sessionName) && (course != null && s.getCourse().getId().equals(course.getId())))
-                        .findFirst()
-                        .orElse(null);
-
-                String materialTypeStr = getStringCellValue(row.getCell(2)).toUpperCase();
-                CourseMaterial.MaterialType materialType;
-                try {
-                    materialType = CourseMaterial.MaterialType.valueOf(materialTypeStr);
-                } catch (IllegalArgumentException e) {
-                    throw new IllegalArgumentException("Invalid Material Type '" + materialTypeStr + "' in row: " + row.getRowNum());
-                }
-
-                CourseMaterial material = CourseMaterial.builder()
-                        .course(course)
-                        .session(session)
-                        .name(getStringCellValue(row.getCell(3)))
-                        .description(getStringCellValue(row.getCell(4)))
-                        .type(materialType)
-                        .fileUrl(getStringCellValue(row.getCell(5)))
-                        .estimatedTimeInMinutes(getLongCellValue(row.getCell(6)))
-                        .order(getIntCellValue(row.getCell(7)))
-                        .build();
-                materials.add(material);
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Error processing Material row: " + row.getRowNum() + ". Details: " + e.getMessage());
-            }
-        }
-        materialService.saveAllFromExcel(materials);
-    }
-
-    private String getStringCellValue(Cell cell) {
-        if (cell == null) {
-            return null;
-        }
-        cell.setCellType(CellType.STRING);
-        return cell.getStringCellValue().trim();
-    }
-
-    private boolean getBooleanCellValue(Cell cell) {
-        if (cell == null) {
-            return false;
-        }
-        if (cell.getCellType() == CellType.BOOLEAN) {
-            return cell.getBooleanCellValue();
-        } else if (cell.getCellType() == CellType.STRING) {
-            return Boolean.parseBoolean(cell.getStringCellValue().trim().toLowerCase());
-        }
-        return false;
-    }
-
-    private float getFloatCellValue(Cell cell) {
-        if (cell == null) {
-            return 0.0f;
-        }
-        return (float) cell.getNumericCellValue();
-    }
-
-    private int getIntCellValue(Cell cell) {
-        if (cell == null) {
-            return 0;
-        }
-        return (int) cell.getNumericCellValue();
-    }
-
-    private long getLongCellValue(Cell cell) {
-        if (cell == null) {
-            return 0L;
-        }
-        return (long) cell.getNumericCellValue();
-    }
-    @GetMapping("/download-template-all")
-    public ResponseEntity<Resource> downloadExcelTemplate() {
-        try {
-            // Đường dẫn tương đối từ thư mục gốc của project
-            Path filePath = Paths.get("data-excel/course_session_import_template.xlsx");
-            Resource resource = new ByteArrayResource(Files.readAllBytes(filePath));
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("Content-Disposition", "attachment; filename=course_session_import_template.xlsx");
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(resource);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
 }

@@ -1,13 +1,16 @@
 package com.example.hcm25_cpl_ks_java_01_lms.user;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
+import com.example.hcm25_cpl_ks_java_01_lms.activity.Activity;
+import com.example.hcm25_cpl_ks_java_01_lms.activity.ActivityService;
 import com.example.hcm25_cpl_ks_java_01_lms.chat.Conversation;
 import com.example.hcm25_cpl_ks_java_01_lms.chat.ConversationService;
+import com.example.hcm25_cpl_ks_java_01_lms.common.Constants;
+import com.example.hcm25_cpl_ks_java_01_lms.config.security.JwtTokenUtils;
+import com.example.hcm25_cpl_ks_java_01_lms.role.Role;
+import com.example.hcm25_cpl_ks_java_01_lms.role.RoleService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -19,25 +22,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.example.hcm25_cpl_ks_java_01_lms.activity.Activity;
-import com.example.hcm25_cpl_ks_java_01_lms.activity.ActivityService;
-import com.example.hcm25_cpl_ks_java_01_lms.common.Constants;
-import com.example.hcm25_cpl_ks_java_01_lms.config.security.JwtTokenUtils;
-import com.example.hcm25_cpl_ks_java_01_lms.role.Role;
-import com.example.hcm25_cpl_ks_java_01_lms.role.RoleService;
-
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/users")

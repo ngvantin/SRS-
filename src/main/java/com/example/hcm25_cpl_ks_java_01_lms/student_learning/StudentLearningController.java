@@ -1,9 +1,6 @@
 package com.example.hcm25_cpl_ks_java_01_lms.student_learning;
 
-import com.example.hcm25_cpl_ks_java_01_lms.certificate.CertificateDTO;
-import com.example.hcm25_cpl_ks_java_01_lms.certificate.CertificateService;
 import com.example.hcm25_cpl_ks_java_01_lms.classes.ClassesService;
-import com.example.hcm25_cpl_ks_java_01_lms.common.Constants;
 import com.example.hcm25_cpl_ks_java_01_lms.config.security.JwtTokenUtils;
 import com.example.hcm25_cpl_ks_java_01_lms.course.Course;
 import com.example.hcm25_cpl_ks_java_01_lms.course.CourseService;
@@ -16,24 +13,16 @@ import com.example.hcm25_cpl_ks_java_01_lms.progress_management.material_progres
 import com.example.hcm25_cpl_ks_java_01_lms.session.Session;
 import com.example.hcm25_cpl_ks_java_01_lms.session.SessionService;
 import com.example.hcm25_cpl_ks_java_01_lms.student_learning.dto.EnrolledCourseDTO;
-import com.example.hcm25_cpl_ks_java_01_lms.student_learning.dto.MaterialProgressDTO;
 import com.example.hcm25_cpl_ks_java_01_lms.student_learning.dto.SessionDTO;
 import com.example.hcm25_cpl_ks_java_01_lms.training_program_enrollment.TrainingProgramEnrollmentService;
 import com.example.hcm25_cpl_ks_java_01_lms.user.User;
 import com.example.hcm25_cpl_ks_java_01_lms.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -42,14 +31,13 @@ import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/student")
-//@PreAuthorize("@customSecurityService.hasRoleForModule(authentication, 'Courses Learning')")
+//@PreAuthorize("@customSecurityService.hasRoleForModule(authentication, 'Student Courses')")
 public class StudentLearningController {
-    private static final Logger log = LoggerFactory.getLogger(StudentLearningController.class);
+
     private final UserService userService;
     private final CourseService courseService;
 
@@ -76,9 +64,6 @@ public class StudentLearningController {
 
     @Autowired
     private CourseEnrollmentService courseEnrollmentService;
-
-    @Autowired
-    private CertificateService certificateService;
 
     @Autowired
     public StudentLearningController(UserService userService, CourseService courseService) {
@@ -160,7 +145,7 @@ public class StudentLearningController {
         model.addAttribute("courses", courses);
         model.addAttribute("enrolledCourseIds", enrolledCourseIds);
         model.addAttribute("content", "student_learnings/courses");
-        return Constants.LAYOUT;
+        return "LAYOUT";
     }
 
     @GetMapping("/courses/{courseId}/learn")
@@ -184,7 +169,7 @@ public class StudentLearningController {
                 .stream()
                 .sorted(Comparator.comparing(Session::getOrderNumber))
                 .collect(Collectors.toList());
-
+        ;
         Session currentSession = null;
         List<CourseMaterial> courseMaterials = null;
         Long nextSessionId = null;
@@ -249,21 +234,13 @@ public class StudentLearningController {
 
         // Lấy danh sách MaterialProgress đã hoàn thành
         List<MaterialProgress> materialProgressList = materialProgressService.findCompletedMaterials(studentId, courseId);
-        Map<Long, MaterialProgress> materialProgressMap = materialProgressList.stream()
-                .collect(Collectors.toMap(MaterialProgress::getMaterialId, Function.identity()));
-
 
         // Kiểm tra material hiện tại đã hoàn thành chưa
         boolean materialCompleted = false;
-        MaterialProgress currentMaterialProgress = null;
         if (currentMaterial != null) {
             CourseMaterial finalCurrentMaterial = currentMaterial;
-            currentMaterialProgress = materialProgressMap.get(currentMaterial.getId());
             materialCompleted = materialProgressList.stream()
                     .anyMatch(mp -> mp.getMaterialId().equals(finalCurrentMaterial.getId()));
-            if (currentMaterialProgress != null && currentMaterialProgress.getIsCompleted()) {
-                materialCompleted = true;
-            }
         }
 
         // Đánh dấu những material đã hoàn thành (dùng để hiển thị giao diện)
@@ -276,6 +253,11 @@ public class StudentLearningController {
 
         // Progress for material
         if (currentMaterial != null && sessionId != null) {
+//            System.out.println("studentId: " + studentId);
+//            System.out.println("courseId: " + courseId);
+//            System.out.println("sessionId: " + sessionId);
+//            System.out.println("materialId: " + currentMaterial.getId());
+
             MaterialProgress progress = materialProgressService
                     .findOneByUserIdAndCourseIdAndSessionIdAndMaterialId(studentId, courseId, sessionId, currentMaterial.getId());
 
@@ -294,16 +276,14 @@ public class StudentLearningController {
             progress.setLastAccessedAt(LocalDateTime.now());
 
             // Cộng dồn thời gian học ước tính mỗi lần truy cập
-//            Duration learningIncrement = Duration.ofMinutes(1); // hoặc truyền từ phía client
-//            if (progress.getTotalStudyTime() == null) {
-//                progress.setTotalStudyTime(learningIncrement);
-//            } else {
-//                progress.setTotalStudyTime(progress.getTotalStudyTime().plus(learningIncrement));
-//            }
+            Duration learningIncrement = Duration.ofMinutes(1); // hoặc truyền từ phía client
+            if (progress.getTotalStudyTime() == null) {
+                progress.setTotalStudyTime(learningIncrement);
+            } else {
+                progress.setTotalStudyTime(progress.getTotalStudyTime().plus(learningIncrement));
+            }
 
-            // Update currentMaterialProgress after saving
             materialProgressService.save(progress);
-            currentMaterialProgress = progress;
         }
 
         //         Số lượng material đã hoàn thành
@@ -324,42 +304,9 @@ public class StudentLearningController {
         model.addAttribute("materialCompletedMap", materialCompletedMap);
         model.addAttribute("completedCount", completedCount);
         model.addAttribute("totalCount", totalCount);
-        model.addAttribute("currentMaterialProgress", currentMaterialProgress);
         model.addAttribute("content", "student_learnings/learn_session");
 
-        return Constants.LAYOUT;
-    }
-
-    @Transactional
-    @PostMapping("/courses/{courseId}/learn/progress/update-time")
-    public ResponseEntity<String> updateStudyTime(
-            @PathVariable Long courseId,
-            @RequestParam Long sessionId,
-            @RequestParam Long materialId,
-            @RequestParam Long studyTimeInSeconds,
-            HttpServletRequest request) {
-
-        String token = jwtTokenUtils.extractTokenFromRequest(request);
-        Long studentId = jwtTokenUtils.extractUserId(token);
-
-        System.out.println("Updating study time: studentId=" + studentId +
-                ", courseId=" + courseId +
-                ", sessionId=" + sessionId +
-                ", materialId=" + materialId +
-                ", studyTimeInSeconds=" + studyTimeInSeconds);
-
-        MaterialProgress progress = materialProgressService.findOneByUserIdAndCourseIdAndSessionIdAndMaterialId(studentId, courseId, sessionId, materialId);
-
-        if (progress != null) {
-            Duration existingTime = progress.getTotalStudyTime() != null ? progress.getTotalStudyTime() : Duration.ZERO;
-            Duration newTime = existingTime.plus(Duration.ofSeconds(studyTimeInSeconds));
-            progress.setTotalStudyTime(newTime);
-            progress.setLastAccessedAt(LocalDateTime.now()); // Cập nhật thời gian truy cập cuối cùng
-            materialProgressService.save(progress);
-            return ResponseEntity.ok("Study time updated successfully.");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Material progress not found.");
-        }
+        return "LAYOUT";
     }
 
 
@@ -451,7 +398,7 @@ public class StudentLearningController {
         model.addAttribute("enrolledCourseIds", enrolledCourseIds);
         model.addAttribute("content", "student_learnings/course_detail");
 
-        return Constants.LAYOUT;
+        return "LAYOUT";
     }
 
     @PostMapping("/courses/{courseId}/enroll")
@@ -499,35 +446,5 @@ public class StudentLearningController {
             enrolledCourses.add(dto);
         }
         return enrolledCourses;
-    }
-    @GetMapping("/my-certificates")
-    public String getStudentCertificates(@AuthenticationPrincipal User student, Model model) {
-        log.info("Entering getStudentCertificates endpoint for userId: {}", student.getId());
-        List<CertificateDTO> certificates = certificateService.findByUserId(student.getId());
-        log.info("Found {} certificates for userId: {}", certificates.size(), student.getId());
-        if (certificates.isEmpty()) {
-            log.warn("No certificates found for userId: {}. Check database table 'certificate' for user_id match.", student.getId());
-        }
-        model.addAttribute("certificates", certificates);
-        return "student_learnings/certificates";
-    }
-
-    @GetMapping("/certificates/{certId}")
-    public String viewCertificate(@PathVariable Long certId, HttpServletRequest request, Model model) {
-        String token = jwtTokenUtils.extractTokenFromRequest(request);
-        Long studentId = jwtTokenUtils.extractUserId(token);
-
-        CertificateDTO certificate = certificateService.findByUserId(studentId).stream()
-                .filter(cert -> cert.getId().equals(certId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Certificate not found"));
-
-        User student = userService.getUserById(studentId);
-        model.addAttribute("studentId", studentId);
-        model.addAttribute("user", student);
-        model.addAttribute("certificate", certificate);
-        model.addAttribute("content", "student_learnings/certificate_detail");
-
-        return Constants.LAYOUT;
     }
 }
