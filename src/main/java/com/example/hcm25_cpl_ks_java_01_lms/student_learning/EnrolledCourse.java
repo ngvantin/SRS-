@@ -1,7 +1,6 @@
 package com.example.hcm25_cpl_ks_java_01_lms.student_learning;
 
 import com.example.hcm25_cpl_ks_java_01_lms.course.Course;
-import com.example.hcm25_cpl_ks_java_01_lms.student.Student;
 import com.example.hcm25_cpl_ks_java_01_lms.user.User;
 import jakarta.persistence.*;
 import lombok.*;

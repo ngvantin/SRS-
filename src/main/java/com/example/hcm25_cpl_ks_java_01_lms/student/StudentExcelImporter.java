@@ -37,7 +37,7 @@ public class StudentExcelImporter {
                 Cell currentCell = cellsInRow.next();
                 switch (cellIdx) {
                     case 0:
-                        student.setStudentCode(currentCell.getStringCellValue());
+                        student.setStudentID(currentCell.getStringCellValue());
                         break;
                     case 1:
                         student.setLastName(currentCell.getStringCellValue());

@@ -11,10 +11,7 @@ import com.example.hcm25_cpl_ks_java_01_lms.feedback.report.course.CourseFeedbac
 import com.example.hcm25_cpl_ks_java_01_lms.feedback.report.instructor.InstructorFeedbackReport;
 import com.example.hcm25_cpl_ks_java_01_lms.feedback.report.instructor.InstructorFeedbackReportRepository;
 import com.example.hcm25_cpl_ks_java_01_lms.material.CloudinaryService;
-import com.example.hcm25_cpl_ks_java_01_lms.material.CourseMaterialService;
-import com.example.hcm25_cpl_ks_java_01_lms.modulegroup.ModuleGroup;
 import com.example.hcm25_cpl_ks_java_01_lms.notification.services.NotificationSenderService;
-import com.example.hcm25_cpl_ks_java_01_lms.session.Session;
 import com.example.hcm25_cpl_ks_java_01_lms.session.SessionRepository;
 import com.example.hcm25_cpl_ks_java_01_lms.tag.Tag;
 import com.example.hcm25_cpl_ks_java_01_lms.tag.TagRepository;
@@ -30,10 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -55,7 +50,6 @@ public class CourseService {
     private final TopicRepository topicRepository;
     private final TagRepository tagRepository;
     private final CourseMapper courseMapper;
-    private final CourseMaterialService courseMaterialService;
 
     @Autowired
     private CertificateRepository certificateRepository;
@@ -196,31 +190,27 @@ public class CourseService {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-//        // 1. Lấy danh sách tất cả các Session thuộc về Course này
-//        List<Session> sessionsToDelete = sessionRepository.findByCourseId(course.getId());
-//
-//        // 2. Duyệt qua từng Session và xóa các CourseMaterial liên quan
-//        for (Session session : sessionsToDelete) {
-//            // Tìm và xóa tất cả CourseMaterial liên quan đến Session này
-//            courseMaterialService.de(session);
-//        }
+        // 1️⃣ Xóa tất cả session trước khi xóa khóa học
+        sessionRepository.deleteByCourse(course);
 
-//        sessionRepository.deleteByCourse(course);
-
+        // 2️⃣ Xóa CourseFeedbackReport liên quan đến khóa học
         courseFeedbackReportRepository.deleteByCourse(course);
         courseFeedbackRepository.deleteByCourse(course);
+
+        // 3️⃣ Kiểm tra và xóa InstructorFeedbackReport nếu giảng viên không còn khóa học nào khác
         User instructor = course.getInstructor();
         Optional<InstructorFeedbackReport> instructorFeedbackReportOpt = instructorFeedbackReportRepository.findByInstructor(instructor);
         if (instructorFeedbackReportOpt.isPresent()) {
-
+            // Kiểm tra xem giảng viên còn dạy khóa học nào khác không
             long courseCount = courseRepository.countByInstructor(instructor);
-            if (courseCount <= 1) {
+            if (courseCount <= 1) { // Nếu chỉ còn khóa học này (sẽ bị xóa), xóa luôn InstructorFeedbackReport
                 instructorFeedbackReportRepository.delete(instructorFeedbackReportOpt.get());
             }
         }
+        // Xóa tất cả Certificate liên quan đến khóa học
         certificateRepository.deleteByCourse(course);
         try {
-
+            // 4️⃣ Xóa ảnh trên Cloudinary nếu có
             if (course.getImage() != null && !course.getImage().isEmpty()) {
                 cloudinaryService.deleteImage(course.getImage());
             }
@@ -228,6 +218,7 @@ public class CourseService {
             throw new RuntimeException("Failed to delete image from Cloudinary: " + e.getMessage());
         }
 
+        // 5️⃣ Xóa khóa học
         courseRepository.delete(course);
     }
 

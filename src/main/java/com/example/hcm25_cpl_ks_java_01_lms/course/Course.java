@@ -1,7 +1,6 @@
 package com.example.hcm25_cpl_ks_java_01_lms.course;
 
 import com.example.hcm25_cpl_ks_java_01_lms.assessment.Assessment;
-import com.example.hcm25_cpl_ks_java_01_lms.material.CourseMaterial;
 import com.example.hcm25_cpl_ks_java_01_lms.session.Session;
 import com.example.hcm25_cpl_ks_java_01_lms.tag.Tag;
 import com.example.hcm25_cpl_ks_java_01_lms.topic.Topic;
@@ -10,8 +9,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-
 import java.util.List;
+import java.util.Objects;
 
 @Setter
 @Getter
@@ -94,6 +93,17 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Topic> topics; // Danh sách các Topic thuộc về Course này
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CourseMaterial> courseMaterials;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Course)) return false;
+        Course course = (Course) o;
+        return Objects.equals(id, course.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
 }
